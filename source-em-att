@@ -5519,3 +5519,35 @@ function UILibrary.Section:Dropdown(sett, callback)
 end
 
 return UILibrary
+
+-- 1. Adicionando a detecção de tecla Insert para abrir/fechar o menu
+local UserInputService = game:GetService("UserInputService")
+
+-- Função para abrir o menu
+local function abrirMenu()
+    painel.Visible = true  -- Torna o painel visível
+    maximizarMenu()  -- Chama a animação de maximizar
+end
+
+-- Função para fechar o menu
+local function fecharMenu()
+    minimizarMenu()  -- Chama a animação de minimizar
+    wait(0.5)  -- Espera a animação de minimização terminar (ajuste o tempo se necessário)
+    painel.Visible = false  -- Torna o painel invisível
+end
+
+-- Detecção de quando a tecla Insert é pressionada
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end  -- Ignora a entrada se o jogo já processou
+
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.Insert then
+            if painel.Visible then
+                fecharMenu()  -- Fecha o painel se ele estiver visível
+            else
+                abrirMenu()  -- Abre o painel se ele estiver invisível
+            end
+        end
+    end
+end)
+
