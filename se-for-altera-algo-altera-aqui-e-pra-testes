@@ -1,5 +1,5 @@
 -- Carregar a biblioteca Orion 
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/source-teste')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/source-test')))()
 local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🎄", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
 
 -- Criar a aba ESP
