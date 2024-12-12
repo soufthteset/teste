@@ -281,14 +281,20 @@ local Tab4 = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Função para carregar o Rael Hub
+-- Função para carregar o Rael Hub da nova URL
+local function loadRaelHub()
+    createInfoBox("Rael Hub", "Carregando Rael Hub...")
+
+    -- Carregar o script a partir do novo link
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Laelmano24/Rael-Hub/main/main.txt"))()
+
+    createInfoBox("Rael Hub", "Rael Hub carregado com sucesso!")
+end
+
+-- Botão para carregar o Rael Hub na aba Brookhaven
 Tab4:AddButton({
     Name = "Rael Hub",
-    Callback = function()
-        createInfoBox("Rael Hub", "Carregando Rael Hub...")
-        loadstring(game:HttpGet("https://pastebin.com/raw/uZm5LCZb"))()
-        createInfoBox("Rael Hub", "Rael Hub carregado com sucesso!")
-    end
+    Callback = loadRaelHub
 })
 
 -- O restante do código segue conforme estava, incluindo as funções para TROLL, ESP, etc.
