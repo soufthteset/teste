@@ -153,19 +153,26 @@ local function MakeElement(ElementName, ...)
     return NewElement
 end
 
--- Adiciona "Source By MineziN" no canto inferior direito
+-- Adiciona "Source By MineziN" em RGB no canto superior direito
 task.spawn(function()
     local SourceLabel = Instance.new("TextLabel")
     SourceLabel.Parent = Orion
     SourceLabel.Text = "Source By MineziN"
     SourceLabel.Size = UDim2.new(0, 200, 0, 30)
-    SourceLabel.Position = UDim2.new(1, -210, 1, -40)
-    SourceLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+    SourceLabel.Position = UDim2.new(1, -210, 0, 10)
     SourceLabel.BackgroundTransparency = 1
     SourceLabel.Font = Enum.Font.GothamBold
     SourceLabel.TextSize = 14
-    SourceLabel.AnchorPoint = Vector2.new(1, 1)
+    SourceLabel.AnchorPoint = Vector2.new(1, 0)
     SourceLabel.ZIndex = 100
+
+    -- Efeito RGB
+    local hue = 0
+    while OrionLib:IsRunning() do
+        hue = (hue + 1) % 360
+        SourceLabel.TextColor3 = Color3.fromHSV(hue / 360, 1, 1)
+        wait(0.05)
+    end
 end)
 
 local function SetProps(Element, Props)
