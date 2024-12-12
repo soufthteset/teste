@@ -164,7 +164,8 @@ task.spawn(function()
     SourceLabel.BackgroundTransparency = 1
     SourceLabel.Font = Enum.Font.GothamBold
     SourceLabel.TextSize = 14
-    SourceLabel.AnchorPoint = Vector2.new(0, 1)
+    SourceLabel.AnchorPoint = Vector2.new(1, 1)
+    SourceLabel.ZIndex = 100
 end)
 
 local function SetProps(Element, Props)
