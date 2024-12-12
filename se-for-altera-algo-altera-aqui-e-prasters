@@ -2,9 +2,9 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-nessess')))()
 local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🎄", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
 
--- Criar a aba ESP
+-- Criar a aba ESP/Aim
 local Tab1 = Window:MakeTab({
-    Name = "ESP",
+    Name = "ESP/Aim",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
@@ -189,21 +189,25 @@ Tab1:AddSlider({
     end
 })
 
+-- Adicionar o Aimbot diretamente da URL fornecida
+Tab1:AddButton({
+    Name = "Ativar Aimbot",
+    Callback = function()
+        createInfoBox("Aimbot", "Carregando Aimbot...")
+
+        -- Carregar o Aimbot a partir do link do Pastebin
+        loadstring(game:HttpGet("https://pastebin.com/raw/rxkWAcMU"))()
+
+        createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
+    end
+})
+
 -- Criar a aba HUBS
 local Tab2 = Window:MakeTab({
     Name = "HUBS",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
-
--- Função para criar a InfoBox
-local function createInfoBox(funcName, status)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = funcName,
-        Text = status,
-        Duration = 5
-    })
-end
 
 -- Funções para FE SCRIPTS
 local function onButtonClick()
@@ -230,12 +234,6 @@ local function DEXLOAD()
     createInfoBox('Dex', 'Dex carregado com sucesso!')
 end
 
-local function fakeo()
-    createInfoBox("FakeOP", "Carregando FakeOP...")
-    loadstring(game:HttpGet("https://pastebin.com/raw/DvAtXywF"))()
-    createInfoBox("FakeOP", "FakeOP carregado com sucesso!")
-end
-
 -- Botões para os FE SCRIPTS na aba HUBS
 Tab2:AddButton({
     Name = "Infinite Yield",
@@ -248,11 +246,6 @@ Tab2:AddButton({
 })
 
 Tab2:AddButton({
-    Name = "Aimbot",
-    Callback = fakeo
-})
-
-Tab2:AddButton({
     Name = "F3X",
     Callback = F3XLOADER
 })
@@ -260,11 +253,6 @@ Tab2:AddButton({
 Tab2:AddButton({
     Name = "Dex",
     Callback = DEXLOAD
-})
-
-Tab2:AddButton({
-    Name = "FakeOP",
-    Callback = fakeo
 })
 
 -- Criar a aba Brookhaven
@@ -301,6 +289,7 @@ Tab4:AddButton({
     Name = "Rael Hub",
     Callback = loadRaelHub
 })
+
 -- Criar a aba System Broken
 local Tab3 = Window:MakeTab({
     Name = "System Broken",
@@ -313,7 +302,7 @@ local function loadSystemBroken()
     createInfoBox("System Broken", "Carregando System Broken...")
 
     -- Carregar o script a partir do link fornecido
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/script"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Laelmano24/Rael-Hub/main/main.txt"))()
 
     createInfoBox("System Broken", "System Broken carregado com sucesso!")
 end
@@ -323,4 +312,3 @@ Tab3:AddButton({
     Name = "System Broken",
     Callback = loadSystemBroken
 })
-
