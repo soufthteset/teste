@@ -255,60 +255,26 @@ Tab2:AddButton({
     Callback = DEXLOAD
 })
 
--- Criar a aba Brookhaven
-local Tab4 = Window:MakeTab({
-    Name = "Brookhaven",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Função para carregar o Rael Hub da nova URL
-local function loadRaelHub()
-    createInfoBox("Rael Hub", "Carregando Rael Hub...")
-
-    -- Criar a descrição "Espere 10 segundos"
-    local descriptionLabel = Instance.new("TextLabel")
-    descriptionLabel.Size = UDim2.new(1, 0, 0, 30)
-    descriptionLabel.Position = UDim2.new(0, 0, 1, 10)
-    descriptionLabel.Text = "Espere 10 segundos"
-    descriptionLabel.TextColor3 = Color3.new(1, 1, 1)
-    descriptionLabel.BackgroundTransparency = 1
-    descriptionLabel.Font = Enum.Font.SourceSans
-    descriptionLabel.TextSize = 14
-    descriptionLabel.TextAlign = Enum.TextAnchor.MiddleCenter
-    descriptionLabel.Parent = Tab4.Content
-
-    -- Carregar o script a partir do novo link
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Laelmano24/Rael-Hub/main/main.txt"))()
-
-    createInfoBox("Rael Hub", "Rael Hub carregado com sucesso!")
-end
-
--- Botão para carregar o Rael Hub na aba Brookhaven
-Tab4:AddButton({
-    Name = "Rael Hub",
-    Callback = loadRaelHub
-})
 
 -- Criar a aba System Broken
 local Tab3 = Window:MakeTab({
-    Name = "System Broken",
+    Name = "Brookhaven",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
 -- Função para carregar o System Broken
 local function loadSystemBroken()
-    createInfoBox("System Broken", "Carregando System Broken...")
+    createInfoBox("Real Hub", "Carregando Real Hub...")
 
     -- Carregar o script a partir do link fornecido
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Laelmano24/Rael-Hub/main/main.txt"))()
 
-    createInfoBox("System Broken", "System Broken carregado com sucesso!")
+    createInfoBox("Real Hub", "System Broken carregado com sucesso!")
 end
 
 -- Botão para carregar o System Broken na aba System Broken
 Tab3:AddButton({
-    Name = "System Broken",
+    Name = "Real Hub",
     Callback = loadSystemBroken
 })
