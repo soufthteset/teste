@@ -278,3 +278,30 @@ Tab3:AddButton({
     Name = "Real Hub",
     Callback = loadSystemBroken
 })
+
+
+
+
+
+-- Criar a aba System Broken
+local Tab3 = Window:MakeTab({
+    Name = " System Broken",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Função para carregar o System Broken
+local function loadSystemBroken()
+    createInfoBox("System Broken", "Carregando Real Hub...")
+
+    -- Carregar o script a partir do link fornecido
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/script"))()
+
+    createInfoBox("System broken", "System Broken carregado com sucesso!")
+end
+
+-- Botão para carregar o System Broken na aba System Broken
+Tab3:AddButton({
+    Name = "System broken",
+    Callback = loadSystemBroken
+})
