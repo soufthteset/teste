@@ -24,26 +24,22 @@ end
 
 CreateSnowParticles()
 
--- Função para aplicar as cores
-local function SetTheme()
-    -- Atualiza as cores no menu
-    local theme = OrionLib.Themes.Default
-    OrionLib.ThemeObjects = OrionLib.ThemeObjects or {}
+-- Variáveis para armazenar as cores selecionadas
+local selectedMainColor = Color3.fromRGB(255, 255, 255)
+local selectedSecondColor = Color3.fromRGB(200, 0, 0)
+local selectedStrokeColor = Color3.fromRGB(150, 0, 0)
+local selectedDividerColor = Color3.fromRGB(220, 0, 0)
 
-    -- Aqui, devemos iterar por cada componente da interface e atualizar sua cor com base nas seleções
-    for Name, Type in pairs(OrionLib.ThemeObjects) do
-        for _, Object in pairs(Type) do
-            if Name == "Main" then
-                Object.BackgroundColor3 = theme.Main
-            elseif Name == "Second" then
-                Object.BackgroundColor3 = theme.Second
-            elseif Name == "Stroke" then
-                Object.BorderColor3 = theme.Stroke
-            elseif Name == "Divider" then
-                Object.DividerColor3 = theme.Divider
-            end
-        end
-    end
+-- Função para atualizar as cores no menu
+local function ApplyColors()
+    -- Atualiza as cores com base nas seleções
+    OrionLib.Themes.Default.Main = selectedMainColor
+    OrionLib.Themes.Default.Second = selectedSecondColor
+    OrionLib.Themes.Default.Stroke = selectedStrokeColor
+    OrionLib.Themes.Default.Divider = selectedDividerColor
+
+    -- Atualiza a interface do menu para refletir as novas cores
+    OrionLib:UpdateTheme()
 end
 
 -- Aba de Configurações para Troca de Cores
@@ -51,12 +47,6 @@ local SettingsTab = Window:MakeTab({
     Name = "Settings",
     Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
 })
-
--- Variáveis para armazenar as cores selecionadas
-local selectedMainColor = Color3.fromRGB(255, 255, 255)
-local selectedSecondColor = Color3.fromRGB(200, 0, 0)
-local selectedStrokeColor = Color3.fromRGB(150, 0, 0)
-local selectedDividerColor = Color3.fromRGB(220, 0, 0)
 
 -- Colorpicker para o Fundo Principal (Main)
 SettingsTab:AddColorpicker({
@@ -102,14 +92,7 @@ SettingsTab:AddColorpicker({
 SettingsTab:AddButton({
     Name = "Aplicar Cor",
     Callback = function()
-        -- Aplica as cores selecionadas
-        OrionLib.Themes.Default.Main = selectedMainColor
-        OrionLib.Themes.Default.Second = selectedSecondColor
-        OrionLib.Themes.Default.Stroke = selectedStrokeColor
-        OrionLib.Themes.Default.Divider = selectedDividerColor
-
-        -- Atualiza o tema
-        SetTheme()  -- Aplicar as cores
+        ApplyColors()  -- Chama a função para aplicar as cores
     end
 })
 
