@@ -157,13 +157,16 @@ local Tab2 = Window:MakeTab({
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
-local function onButtonClick()
+
+-- Função para carregar InfiniteYield
+local function onInfiniteYieldButtonClick()
     createInfoBox("InfiniteYield", "Carregando InfiniteYield...")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
     createInfoBox("InfiniteYield", "InfiniteYield carregado com sucesso!")
 end
 
-local function onButtonClick()
+-- Função para carregar DebugFE
+local function onDebugFEButtonClick()
     createInfoBox("DebugFE", "Carregando DebugFE...")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/yofriendfromschool1/debugnation/main/decompilers%20and%20debugging/Debuggers.txt"))()
     createInfoBox("DebugFE", "DebugFE carregado com sucesso!")
@@ -185,12 +188,13 @@ local function DEXLOAD()
     createInfoBox('Dex', 'Dex carregado com sucesso!')
 end
 Tab2:AddButton({
-    Name = "Infinite Yield",
-    Callback = onButtonClick
+    Name = "InfiniteYield",
+    Callback = onInfiniteYieldButtonClick
 })
+
 Tab2:AddButton({
     Name = "DebugFE",
-    Callback = onButtonClick
+    Callback = onDebugFEButtonClick
 })
 Tab2:AddButton({
     Name = "Fe Invisible",
