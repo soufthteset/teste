@@ -188,12 +188,12 @@ local function DEXLOAD()
     createInfoBox('Dex', 'Dex carregado com sucesso!')
 end
 Tab2:AddButton({
-    Name = "Carregar InfiniteYield",
+    Name = "InfiniteYield",
     Callback = onInfiniteYieldButtonClick
 })
 
 Tab2:AddButton({
-    Name = "Carregar DebugFE",
+    Name = "DebugFE",
     Callback = onDebugFEButtonClick
 })
 Tab2:AddButton({
