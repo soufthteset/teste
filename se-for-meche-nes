@@ -2,57 +2,28 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
--- Carrega o menu GUI
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-
--- Cria a janela principal
-local Window = OrionLib:MakeWindow({Name = "Menu com Pesquisa", HidePremium = false, SaveConfig = true, ConfigFolder = "MeuMenu"})
-
--- Função para criar uma caixa de pesquisa
-local searchBox = Instance.new("TextBox")
-searchBox.Parent = Window.Main
-searchBox.Size = UDim2.new(0, 300, 0, 50)  -- Tamanho da caixa de pesquisa
-searchBox.Position = UDim2.new(0, 10, 0, 10)  -- Posição da caixa
-searchBox.PlaceholderText = "Pesquisar aba..."
-searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-searchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-searchBox.TextSize = 24
-searchBox.ClearTextOnFocus = true
-
--- Função para criar uma aba de configurações
-local SettingsTab = Window:MakeTab({
-    Name = "Configurações",
-    Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
-})
-
-local AnotherTab = Window:MakeTab({
-    Name = "Outro",
-    Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
-})
-
-local TestTab = Window:MakeTab({
-    Name = "Teste",
-    Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
-})
-
--- Função para filtrar as abas com base no texto da caixa de pesquisa
-searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    local searchText = searchBox.Text:lower()
-    
-    -- Mostra ou esconde as abas com base na pesquisa
-    for _, tab in pairs(Window.Tabs) do
-        if tab.Name:lower():find(searchText) then
-            tab.Button.Visible = true  -- Exibe a aba se o nome contiver o texto
-        else
-            tab.Button.Visible = false -- Esconde a aba caso contrário
-        end
-    end
-end)
-
--- Inicializa o menu
-OrionLib:Init()
+local OrionLib = {
+    Elements = {},
+    ThemeObjects = {},
+    Connections = {},
+    Flags = {},
+    Themes = {
+        Default = {
+            Main = Color3.fromRGB(0, 0, 0),
+            Second = Color3.fromRGB(0, 0, 0),
+            Stroke = Color3.fromRGB(0, 0, 0),
+            Divider = Color3.fromRGB(0, 0, 0),
+            Text = Color3.fromRGB(240, 240, 240),
+            TextDark = Color3.fromRGB(150, 150, 150)
+        }
+    },
+    SelectedTheme = "Default",
+    Folder = nil,
+    SaveCfg = false
+}
 
 -- Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
 local Icons = {}
