@@ -39,15 +39,19 @@ local SettingsTab = Window:MakeTab({
     Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
 })
 
+-- Variáveis para armazenar as cores selecionadas
+local selectedMainColor = Color3.fromRGB(255, 255, 255)
+local selectedSecondColor = Color3.fromRGB(200, 0, 0)
+local selectedStrokeColor = Color3.fromRGB(150, 0, 0)
+local selectedDividerColor = Color3.fromRGB(220, 0, 0)
+
 -- Colorpicker para o Fundo Principal (Main)
 SettingsTab:AddColorpicker({
     Name = "Main Color",
     Default = Color3.fromRGB(255, 255, 255),
     AllowTransparency = true,
     Callback = function(value, transparency)
-        OrionLib.Themes.Default.Main = value
-        OrionLib.Themes.Default.MainTransparency = transparency
-        SetTheme()  -- Garantir que a função SetTheme seja chamada
+        selectedMainColor = value -- Armazena a cor selecionada
     end
 })
 
@@ -57,9 +61,7 @@ SettingsTab:AddColorpicker({
     Default = Color3.fromRGB(200, 0, 0),
     AllowTransparency = true,
     Callback = function(value, transparency)
-        OrionLib.Themes.Default.Second = value
-        OrionLib.Themes.Default.SecondTransparency = transparency
-        SetTheme()  -- Garantir que a função SetTheme seja chamada
+        selectedSecondColor = value -- Armazena a cor selecionada
     end
 })
 
@@ -69,9 +71,7 @@ SettingsTab:AddColorpicker({
     Default = Color3.fromRGB(150, 0, 0),
     AllowTransparency = true,
     Callback = function(value, transparency)
-        OrionLib.Themes.Default.Stroke = value
-        OrionLib.Themes.Default.StrokeTransparency = transparency
-        SetTheme()  -- Garantir que a função SetTheme seja chamada
+        selectedStrokeColor = value -- Armazena a cor selecionada
     end
 })
 
@@ -81,14 +81,88 @@ SettingsTab:AddColorpicker({
     Default = Color3.fromRGB(220, 0, 0),
     AllowTransparency = true,
     Callback = function(value, transparency)
-        OrionLib.Themes.Default.Divider = value
-        OrionLib.Themes.Default.DividerTransparency = transparency
-        SetTheme()  -- Garantir que a função SetTheme seja chamada
+        selectedDividerColor = value -- Armazena a cor selecionada
+    end
+})
+
+-- Botão para aplicar as cores
+SettingsTab:AddButton({
+    Name = "Aplicar Cor",
+    Callback = function()
+        -- Aplica as cores selecionadas
+        OrionLib.Themes.Default.Main = selectedMainColor
+        OrionLib.Themes.Default.Second = selectedSecondColor
+        OrionLib.Themes.Default.Stroke = selectedStrokeColor
+        OrionLib.Themes.Default.Divider = selectedDividerColor
+
+        -- Atualiza o tema
+        SetTheme()
     end
 })
 
 -- Inicializa o menu
 OrionLib:Init()
+
+-- Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
+local Icons = {}
+
+local Success, Response = pcall(function()
+    Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+end)
+
+if not Success then
+    warn("\n MinezinMenu - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+end    
+
+local function GetIcon(IconName)
+    if Icons[IconName] ~= nil then
+        return Icons[IconName]
+    else
+        return nil
+    end
+end   
+
+-- Cria a tela principal do Orion GUI
+local Orion = Instance.new("ScreenGui")
+Orion.Name = "MineziN"
+if syn then
+    syn.protect_gui(Orion)  -- Protege a GUI no Synapse X
+    Orion.Parent = game.CoreGui
+else
+    if gethui then
+        Orion.Parent = gethui()  -- Protege em outros executores
+    else
+        Orion.Parent = game.CoreGui
+    end
+end
+
+-- Remover interfaces duplicadas
+if gethui then
+    for _, Interface in ipairs(gethui():GetChildren()) do
+        if Interface.Name == Orion.Name and Interface ~= Orion then
+            Interface:Destroy()
+        end
+    end
+else
+    for _, Interface in ipairs(game.CoreGui:GetChildren()) do
+        if Interface.Name == Orion.Name and Interface ~= Orion then
+            Interface:Destroy()
+        end
+    end
+end
+
+-- Verifica se o GUI está rodando
+function OrionLib:IsRunning()
+    if gethui then
+        return Orion.Parent == gethui()
+    else
+        return Orion.Parent == game:GetService("CoreGui")
+    end
+end
+
+-- Chama a função de inicialização do menu
+OrionLib:Init()
+
 
 -- Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
 local Icons = {}
