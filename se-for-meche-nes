@@ -100,15 +100,21 @@ local function GetIcon(IconName)
     end
 end   
 
+-- Cria a tela principal do Orion GUI
 local Orion = Instance.new("ScreenGui")
 Orion.Name = "MineziN"
 if syn then
-    syn.protect_gui(Orion)
+    syn.protect_gui(Orion)  -- Protege a GUI no Synapse X
     Orion.Parent = game.CoreGui
 else
-    Orion.Parent = gethui() or game.CoreGui
+    if gethui then
+        Orion.Parent = gethui()  -- Protege em outros executores
+    else
+        Orion.Parent = game.CoreGui
+    end
 end
 
+-- Remover interfaces duplicadas
 if gethui then
     for _, Interface in ipairs(gethui():GetChildren()) do
         if Interface.Name == Orion.Name and Interface ~= Orion then
@@ -123,6 +129,7 @@ else
     end
 end
 
+-- Verifica se o GUI está rodando
 function OrionLib:IsRunning()
     if gethui then
         return Orion.Parent == gethui()
@@ -130,6 +137,9 @@ function OrionLib:IsRunning()
         return Orion.Parent == game:GetService("CoreGui")
     end
 end
+
+-- Chama a função de inicialização do menu
+OrionLib:Init()
 
 local function AddConnection(Signal, Function)
     if (not OrionLib:IsRunning()) then
