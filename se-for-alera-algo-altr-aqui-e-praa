@@ -1,4 +1,4 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-nessss')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/sourcee')))()
 local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🎄", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
 local Tab1 = Window:MakeTab({
     Name = "ESP/Aim",
@@ -153,7 +153,7 @@ Tab1:AddButton({
     end
 })
 local Tab2 = Window:MakeTab({
-    Name = "FE",
+    Name = "HUBS",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
