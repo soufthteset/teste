@@ -2,27 +2,31 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
--- Carrega o menu GUI
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local OrionLib = {
+    Elements = {},
+    ThemeObjects = {},
+    Connections = {},
+    Flags = {},
+    Themes = {
+        Default = {
+            Main = Color3.fromRGB(0, 0, 0),
+            Second = Color3.fromRGB(0, 0, 0),
+            Stroke = Color3.fromRGB(0, 0, 0),
+            Divider = Color3.fromRGB(0, 0, 0),
+            Text = Color3.fromRGB(240, 240, 240),
+            TextDark = Color3.fromRGB(150, 150, 150)
+        }
+    },
+    SelectedTheme = "Default",
+    Folder = nil,
+    SaveCfg = false
+}
 
--- Cria a janela principal (sem título, sem ícone, sem configurações)
-local Window = OrionLib:MakeWindow({
-    Name = "",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "MeuMenu"
-})
-
--- Ajuste para tornar o menu quadrado
-Window.Main.BackgroundTransparency = 0  -- Torna o fundo opaco
-Window.Main.BorderSizePixel = 2  -- Adiciona uma borda de 2 pixels
-Window.Main.BorderColor3 = Color3.fromRGB(255, 255, 255)  -- Define a cor da borda (branca)
-Window.Main.Size = UDim2.new(0, 400, 0, 300)  -- Defina o tamanho do menu (400x300) (pode ajustar conforme necessário)
-
--- Inicializa o menu
-OrionLib:Init()
+-- Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
+local Icons = {}
 
 local Success, Response = pcall(function()
     Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
