@@ -8,7 +8,7 @@ local HttpService = game:GetService("HttpService")
 -- Carrega o menu GUI
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
--- Cria a janela principal
+-- Cria a janela principal do menu
 local Window = OrionLib:MakeWindow({Name = "Meu Menu Personalizado 👺", HidePremium = false, SaveConfig = true, ConfigFolder = "MeuMenu"})
 
 -- Função para criar partículas de neve ❄
@@ -24,14 +24,14 @@ end
 
 CreateSnowParticles()
 
--- Criação de um Frame para a caixinha de FPS
+-- Criando um Frame para o FPS (Caixinha Separada)
 local fpsFrame = Instance.new("Frame")
 fpsFrame.Parent = Window.Main
-fpsFrame.Position = UDim2.new(0, 10, 0, 100)  -- Ajuste a posição conforme necessário
-fpsFrame.Size = UDim2.new(0, 200, 0, 50)
-fpsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  -- Cor da caixinha
+fpsFrame.Position = UDim2.new(0, 10, 0, 100)  -- Posição ajustável dentro do painel
+fpsFrame.Size = UDim2.new(0, 200, 0, 50)  -- Tamanho da caixinha
+fpsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  -- Cor de fundo da caixinha
 fpsFrame.BorderSizePixel = 2
-fpsFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+fpsFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)  -- Borda branca
 
 -- Criação da label para exibir o FPS
 local fpsLabel = Instance.new("TextLabel")
