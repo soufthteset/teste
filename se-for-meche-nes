@@ -1,10 +1,20 @@
--- Cria a janela principal 
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local HttpService = game:GetService("HttpService")
+
+-- Carrega o menu GUI
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
+-- Cria a janela principal
 local Window = OrionLib:MakeWindow({Name = "Meu Menu Personalizado 👺", HidePremium = false, SaveConfig = true, ConfigFolder = "MeuMenu"})
 
--- Função para criar partículas de neve
+-- Função para criar partículas de neve ❄
 local function CreateSnowParticles()
     local SnowEffect = Instance.new("ParticleEmitter")
-    SnowEffect.Texture = "rbxassetid://241837157"
+    SnowEffect.Texture = "rbxassetid://241837157" -- ID de uma textura de floco de neve
     SnowEffect.Lifetime = NumberRange.new(3, 6)
     SnowEffect.Rate = 20
     SnowEffect.Speed = NumberRange.new(10, 20)
@@ -17,20 +27,10 @@ CreateSnowParticles()
 -- Aba de Configurações para Troca de Cores
 local SettingsTab = Window:MakeTab({
     Name = "Settings",
-    Icon = "rbxassetid://7072706796"
+    Icon = "rbxassetid://7072706796" -- Ícone de engrenagem
 })
 
--- Função para atualizar o tema
-local function SetTheme()
-    -- Certifica que as cores foram aplicadas corretamente
-    OrionLib.Themes.Default.Main = OrionLib.Themes.Default.Main or Color3.fromRGB(255, 255, 255)
-    OrionLib.Themes.Default.Background = OrionLib.Themes.Default.Background or Color3.fromRGB(30, 30, 30)
-    OrionLib:UpdateTheme() -- Garantir que o tema seja atualizado
-
-    -- Aplique outras configurações de cores, como a cor de fundo, se necessário
-end
-
--- Colorpickers para trocar cores
+-- Colorpicker para o Fundo Principal (Main)
 SettingsTab:AddColorpicker({
     Name = "Main Color",
     Default = Color3.fromRGB(255, 255, 255),
@@ -38,15 +38,48 @@ SettingsTab:AddColorpicker({
     Callback = function(value, transparency)
         OrionLib.Themes.Default.Main = value
         OrionLib.Themes.Default.MainTransparency = transparency
-        SetTheme()  -- Chama a função para aplicar as alterações de tema
+        SetTheme()
+    end
+})
+
+-- Colorpicker para o Segundo Plano (Second)
+SettingsTab:AddColorpicker({
+    Name = "Second Color",
+    Default = Color3.fromRGB(200, 0, 0),
+    AllowTransparency = true,
+    Callback = function(value, transparency)
+        OrionLib.Themes.Default.Second = value
+        OrionLib.Themes.Default.SecondTransparency = transparency
+        SetTheme()
+    end
+})
+
+-- Colorpicker para as Bordas (Stroke)
+SettingsTab:AddColorpicker({
+    Name = "Stroke Color",
+    Default = Color3.fromRGB(150, 0, 0),
+    AllowTransparency = true,
+    Callback = function(value, transparency)
+        OrionLib.Themes.Default.Stroke = value
+        OrionLib.Themes.Default.StrokeTransparency = transparency
+        SetTheme()
+    end
+})
+
+-- Colorpicker para os Divisores (Divider)
+SettingsTab:AddColorpicker({
+    Name = "Divider Color",
+    Default = Color3.fromRGB(220, 0, 0),
+    AllowTransparency = true,
+    Callback = function(value, transparency)
+        OrionLib.Themes.Default.Divider = value
+        OrionLib.Themes.Default.DividerTransparency = transparency
+        SetTheme()
     end
 })
 
 -- Inicializa o menu
 OrionLib:Init()
-
--- Configura um tema padrão, caso ainda não tenha sido definido
-SetTheme()
 
 -- Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
 local Icons = {}
