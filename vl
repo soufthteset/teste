@@ -1,0 +1,65 @@
+-- Título da caixa
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 20)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Text = "Command Bar"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.Parent = frame
+
+-- Caixa de texto para digitar os comandos
+local commandBox = Instance.new("TextBox")
+commandBox.Size = UDim2.new(1, -20, 0, 50)
+commandBox.Position = UDim2.new(0, 10, 0, 30)
+commandBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+commandBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+commandBox.PlaceholderText = "Digite um comando..."
+commandBox.Font = Enum.Font.SourceSans
+commandBox.TextSize = 18
+commandBox.ClearTextOnFocus = false
+commandBox.Parent = frame
+
+-- Função para fechar a Command Bar
+local function closeCommandBar()
+    screenGui:Destroy()
+end
+
+-- Adiciona funcionalidade ao pressionar Enter
+commandBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local command = commandBox.Text:lower()
+
+        -- Exemplo de comandos
+        if command == "rejoin" then
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        elseif command == "fly" then
+            loadstring(game:HttpGet("https://pastebin.com/raw/6N4J7yC5"))()
+        elseif command == "noclip" then
+            loadstring(game:HttpGet("https://pastebin.com/raw/7dYZbG8X"))()
+        elseif command == "kill" then
+            local player = game.Players.LocalPlayer
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.Health = 0
+            end
+        elseif command == "clear" then
+            commandBox.Text = ""
+        elseif command == "close" then
+            closeCommandBar()
+        else
+            warn("Comando desconhecido: " .. command)
+        end
+
+        -- Limpa a caixa após o comando
+        commandBox.Text = ""
+    end
+end)
+
+-- Atalho para fechar a Command Bar (tecla X)
+local userInputService = game:GetService("UserInputService")
+userInputService.InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == Enum.KeyCode.X then
+        closeCommandBar()
+    end
+end)
