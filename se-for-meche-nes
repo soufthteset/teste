@@ -24,13 +24,13 @@ end
 
 CreateSnowParticles()
 
--- Função para mostrar o FPS
+-- Criação da label do FPS
 local fpsLabel = Instance.new("TextLabel")
-fpsLabel.Parent = Window.MainFrame
+fpsLabel.Parent = Window.Main -- Coloca o label dentro do painel principal do Orion
 fpsLabel.Text = "FPS: 0"
 fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 fpsLabel.BackgroundTransparency = 1
-fpsLabel.Position = UDim2.new(0, 10, 0, 50)  -- Posição logo abaixo do nome do jogador e perfil
+fpsLabel.Position = UDim2.new(0, 10, 0, 40)  -- Ajuste a posição conforme necessário
 fpsLabel.Size = UDim2.new(0, 200, 0, 50)
 fpsLabel.Font = Enum.Font.SourceSans
 fpsLabel.TextSize = 24
