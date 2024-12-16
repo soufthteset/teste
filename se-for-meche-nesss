@@ -26,9 +26,22 @@ CreateSnowParticles()
 
 -- Função para aplicar as cores
 local function SetTheme()
+    -- Atualiza as cores no menu
+    local theme = OrionLib.Themes.Default
+    OrionLib.ThemeObjects = OrionLib.ThemeObjects or {}
+
+    -- Aqui, devemos iterar por cada componente da interface e atualizar sua cor com base nas seleções
     for Name, Type in pairs(OrionLib.ThemeObjects) do
         for _, Object in pairs(Type) do
-            Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Name]
+            if Name == "Main" then
+                Object.BackgroundColor3 = theme.Main
+            elseif Name == "Second" then
+                Object.BackgroundColor3 = theme.Second
+            elseif Name == "Stroke" then
+                Object.BorderColor3 = theme.Stroke
+            elseif Name == "Divider" then
+                Object.DividerColor3 = theme.Divider
+            end
         end
     end
 end
@@ -96,7 +109,7 @@ SettingsTab:AddButton({
         OrionLib.Themes.Default.Divider = selectedDividerColor
 
         -- Atualiza o tema
-        SetTheme()
+        SetTheme()  -- Aplicar as cores
     end
 })
 
