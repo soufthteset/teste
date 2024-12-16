@@ -162,6 +162,13 @@ local function onButtonClick()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
     createInfoBox("InfiniteYield", "InfiniteYield carregado com sucesso!")
 end
+
+local function onButtonClick()
+    createInfoBox("DebugFE", "Carregando DebugFE...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/yofriendfromschool1/debugnation/main/decompilers%20and%20debugging/Debuggers.txt"))()
+    createInfoBox("DebugFE", "DebugFE carregado com sucesso!")
+end
+
 local function InvisExec()
     createInfoBox("Fe Invisible", "Carregando Fe Invisible...")
     loadstring(game:HttpGet("https://pastebin.com/raw/c3vgfjhn"))()
@@ -179,6 +186,10 @@ local function DEXLOAD()
 end
 Tab2:AddButton({
     Name = "Infinite Yield",
+    Callback = onButtonClick
+})
+Tab2:AddButton({
+    Name = "DebugFE",
     Callback = onButtonClick
 })
 Tab2:AddButton({
