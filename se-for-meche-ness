@@ -45,7 +45,7 @@ local function GetIcon(IconName)
 end   
 
 local Orion = Instance.new("ScreenGui")
-Orion.Name = "MineziN"
+Orion.Name = "MineziN V2"
 if syn then
     syn.protect_gui(Orion)
     Orion.Parent = game.CoreGui
@@ -157,7 +157,7 @@ end
 task.spawn(function()
     local SourceLabel = Instance.new("TextLabel")
     SourceLabel.Parent = Orion
-    SourceLabel.Text = "Source By MineziN 👻"
+    SourceLabel.Text = "Source By MinezinV2 🕋"
     SourceLabel.Size = UDim2.new(0, 200, 0, 30)
     SourceLabel.Position = UDim2.new(1, -210, 1, -40)
     SourceLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
