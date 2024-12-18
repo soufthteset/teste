@@ -1,7 +1,6 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/sourcee')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-ness')))()
 local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🕋", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
 
--- Aba ESP/Aim
 local Tab1 = Window:MakeTab({
     Name = "ESP/Aim",
     Icon = "rbxassetid://4483345998",
@@ -11,11 +10,10 @@ local Tab1 = Window:MakeTab({
 local espEnabled = false
 local espLines = {}
 local espBillboards = {}
-local mainColor = Color3.new(1, 0, 0) -- Main Color para ESP
+local selectedColor = Color3.new(1, 0, 0) -- Cor padrão vermelha
 local espRadius = 500
 local showDistance = false
 
--- Função de notificação
 local function createInfoBox(funcName, status)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = funcName,
@@ -24,7 +22,6 @@ local function createInfoBox(funcName, status)
     })
 end
 
--- Função para alternar ESP
 local function toggleESP()
     espEnabled = not espEnabled
     if espEnabled then
@@ -34,15 +31,15 @@ local function toggleESP()
             if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 local line = Drawing.new("Line")
                 line.Thickness = 1
-                line.Color = mainColor
+                line.Color = selectedColor
                 line.Visible = true
-                
+
                 local billboard = Instance.new("BillboardGui", player.Character)
                 billboard.Size = UDim2.new(0, 100, 0, 50)
                 billboard.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
                 billboard.StudsOffset = Vector3.new(0, 3, 0)
                 billboard.AlwaysOnTop = true
-                
+
                 local nameLabel = Instance.new("TextLabel", billboard)
                 nameLabel.Size = UDim2.new(1, 0, 1, 0)
                 nameLabel.Text = player.Name
@@ -50,11 +47,49 @@ local function toggleESP()
                 nameLabel.BackgroundTransparency = 1
                 nameLabel.Font = Enum.Font.SourceSansBold
                 nameLabel.TextSize = 14
-                
+
                 espLines[player] = line
                 espBillboards[player] = {billboard = billboard, nameLabel = nameLabel}
             end
         end
+
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if not espEnabled then return end
+            for player, line in pairs(espLines) do
+                local localCharacter = game.Players.LocalPlayer.Character
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
+                    local localPos, onScreen1 = workspace.CurrentCamera:WorldToViewportPoint(localCharacter.HumanoidRootPart.Position)
+                    local targetPos, onScreen2 = workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                    local distance = (localCharacter.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+
+                    if onScreen1 and onScreen2 and distance <= espRadius then
+                        line.From = Vector2.new(localPos.X, localPos.Y)
+                        line.To = Vector2.new(targetPos.X, targetPos.Y)
+                        line.Visible = true
+
+                        if espBillboards[player] then
+                            local nameLabel = espBillboards[player].nameLabel
+                            if showDistance then
+                                nameLabel.Text = string.format("%s - %.1f m", player.Name, distance)
+                            else
+                                nameLabel.Text = player.Name
+                            end
+                            espBillboards[player].billboard.Enabled = true
+                        end
+                    else
+                        line.Visible = false
+                        if espBillboards[player] then
+                            espBillboards[player].billboard.Enabled = false
+                        end
+                    end
+                else
+                    line.Visible = false
+                    if espBillboards[player] then
+                        espBillboards[player].billboard.Enabled = false
+                    end
+                end
+            end
+        end)
     else
         for _, line in pairs(espLines) do
             line:Remove()
@@ -75,15 +110,43 @@ Tab1:AddButton({
     end
 })
 
-Tab1:AddColorpicker({
-    Name = "Main Color",
-    Default = mainColor,
-    Callback = function(color)
-        mainColor = color
+Tab1:AddToggle({
+    Name = "Mostrar Distância",
+    Default = false,
+    Callback = function(state)
+        showDistance = state
     end
 })
 
--- Aba Misc
+-- Seletor de Cor "Main Color"
+Tab1:AddColorPicker({
+    Name = "Main Color",
+    Default = selectedColor,
+    Callback = function(color)
+        selectedColor = color
+    end
+})
+
+Tab1:AddSlider({
+    Name = "Raio do ESP",
+    Min = 200,
+    Max = 5000000,
+    Default = espRadius,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 10,
+    Callback = function(value)
+        espRadius = value
+    end
+})
+
+Tab1:AddButton({
+    Name = "Ativar Aimbot",
+    Callback = function()
+        createInfoBox("Aimbot", "Carregando Aimbot...")
+        loadstring(game:HttpGet("https://pastebin.com/raw/rxkWAcMU"))()
+        createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
+    end
+})
 local TabMisc = Window:MakeTab({
     Name = "Misc",
     Icon = "rbxassetid://4483345998",
@@ -91,77 +154,178 @@ local TabMisc = Window:MakeTab({
 })
 
 -- Click Teleporte
-TabMisc:AddButton({
-    Name = "Click Teleporte",
-    Callback = function()
-        local mouse = game.Players.LocalPlayer:GetMouse()
+local clickTeleportEnabled = false
+local mouse = game.Players.LocalPlayer:GetMouse()
+
+local function toggleClickTeleport()
+    clickTeleportEnabled = not clickTeleportEnabled
+    createInfoBox("Click Teleporte", clickTeleportEnabled and "Ativado!" or "Desativado!")
+
+    if clickTeleportEnabled then
         mouse.Button1Down:Connect(function()
-            if mouse.Target then
-                game.Players.LocalPlayer.Character:MoveTo(mouse.Hit.p)
+            if clickTeleportEnabled then
+                local character = game.Players.LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p)
+                end
             end
         end)
-        createInfoBox("Click Teleporte", "Clique para teleportar ativado!")
     end
-})
+end
 
--- Teleporte para outro jogador
-TabMisc:AddTextbox({
-    Name = "Teleporte Player",
-    Default = "",
-    TextDisappear = true,
-    Callback = function(playerName)
-        local targetPlayer = game.Players:FindFirstChild(playerName)
-        if targetPlayer and targetPlayer.Character then
-            game.Players.LocalPlayer.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
-            createInfoBox("Teleporte Player", "Teleportado para " .. playerName .. "!")
-        else
-            createInfoBox("Teleporte Player", "Jogador não encontrado!")
-        end
-    end
-})
-
--- Sentar
 TabMisc:AddButton({
-    Name = "Sentar",
-    Callback = function()
-        game.Players.LocalPlayer.Character.Humanoid.Sit = true
-    end
-})
-
--- Deitar
-TabMisc:AddButton({
-    Name = "Deitar",
-    Callback = function()
-        game.Players.LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-    end
-})
-
--- Remover Animação
-TabMisc:AddButton({
-    Name = "Sem Animação",
-    Callback = function()
-        local character = game.Players.LocalPlayer.Character
-        for _, v in pairs(character.Humanoid:GetPlayingAnimationTracks()) do
-            v:Stop()
-        end
-    end
+    Name = "Click Teleporte",
+    Callback = toggleClickTeleport
 })
 
 -- Noclip
-local noclip = false
-TabMisc:AddToggle({
-    Name = "Noclip",
-    Default = false,
-    Callback = function(state)
-        noclip = state
-        game:GetService("RunService").Stepped:Connect(function()
-            if noclip then
-                for _, part in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+local noclipEnabled = false
+
+local function toggleNoclip()
+    noclipEnabled = not noclipEnabled
+    createInfoBox("Noclip", noclipEnabled and "Ativado!" or "Desativado!")
+
+    game:GetService("RunService").Stepped:Connect(function()
+        if noclipEnabled then
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
                     if part:IsA("BasePart") then
                         part.CanCollide = false
                     end
                 end
             end
-        end)
+        end
+    end)
+end
+
+TabMisc:AddButton({
+    Name = "Noclip",
+    Callback = toggleNoclip
+})
+
+-- Funções adicionais
+TabMisc:AddButton({
+    Name = "Sentar",
+    Callback = function()
+        game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):Sit()
     end
+})
+
+TabMisc:AddButton({
+    Name = "Deitar",
+    Callback = function()
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        end
+    end
+})
+
+TabMisc:AddButton({
+    Name = "Sem Animação",
+    Callback = function()
+        for _, track in pairs(game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):GetPlayingAnimationTracks()) do
+            track:Stop()
+        end
+    end
+})
+
+local Tab2 = Window:MakeTab({
+    Name = "HUBS",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Função para carregar InfiniteYield
+local function onInfiniteYieldButtonClick()
+    createInfoBox("InfiniteYield", "Carregando InfiniteYield...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    createInfoBox("InfiniteYield", "InfiniteYield carregado com sucesso!")
+end
+
+-- Função para carregar DebugFE
+local function onDebugFEButtonClick()
+    createInfoBox("DebugFE", "Carregando DebugFE...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/yofriendfromschool1/debugnation/main/decompilers%20and%20debugging/Debuggers.txt"))()
+    createInfoBox("DebugFE", "DebugFE carregado com sucesso!")
+end
+
+local function InvisExec()
+    createInfoBox("Fe Invisible", "Carregando Fe Invisible...")
+    loadstring(game:HttpGet("https://pastebin.com/raw/c3vgfjhn"))()
+    createInfoBox("Fe Invisible", "Fe Invisible carregado com sucesso!")
+end
+local function F3XLOADER()
+    createInfoBox("F3X", "Carregando F3X...")
+    loadstring(game:GetObjects("rbxassetid://6695644299")[1].Source)()
+    createInfoBox("F3X", "F3X carregado com sucesso!")
+end
+local function DEXLOAD()
+    createInfoBox('Dex', 'Carregando Dex...')
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+    createInfoBox('Dex', 'Dex carregado com sucesso!')
+end
+Tab2:AddButton({
+    Name = "InfiniteYield",
+    Callback = onInfiniteYieldButtonClick
+})
+
+Tab2:AddButton({
+    Name = "DebugFE",
+    Callback = onDebugFEButtonClick
+})
+Tab2:AddButton({
+    Name = "Fe Invisible",
+    Callback = InvisExec
+})
+Tab2:AddButton({
+    Name = "F3X",
+    Callback = F3XLOADER
+})
+Tab2:AddButton({
+    Name = "Dex",
+    Callback = DEXLOAD
+})
+local Tab3 = Window:MakeTab({
+    Name = "Brookhaven",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+local function loadSystemBroken()
+    createInfoBox("Real Hub", "Carregando Real Hub...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Laelmano24/Rael-Hub/main/main.txt"))()
+    createInfoBox("Real Hub", "System Broken carregado com sucesso!")
+end
+Tab3:AddButton({
+    Name = "Real Hub",
+    Callback = loadSystemBroken
+})
+local Tab3 = Window:MakeTab({
+    Name = "Prison Life",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+local function loadSystemBroken()
+    createInfoBox("STILL WORKING", "Carregando Real Hub...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Denverrz/scripts/master/PRISONWARE_v1.3.txt"))()
+    createInfoBox("STILL WORKING", "System Broken carregado com sucesso!")
+end
+Tab3:AddButton({
+    Name = "STILL WORKING",
+    Callback = loadSystemBroken
+})
+local Tab3 = Window:MakeTab({
+    Name = " System Broken",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+local function loadSystemBroken()
+    createInfoBox("System Broken", "Carregando Real Hub...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/script"))()
+    createInfoBox("System broken", "System Broken carregado com sucesso!")
+end
+Tab3:AddButton({
+    Name = "System broken",
+    Callback = loadSystemBroken
 })
