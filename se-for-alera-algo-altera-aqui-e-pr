@@ -1,19 +1,16 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-ness')))()
 local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🕋", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
-
 local Tab1 = Window:MakeTab({
     Name = "ESP/Aim",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
-
 local espEnabled = false
 local espLines = {}
 local espBillboards = {}
-local selectedColor = Color3.new(1, 0, 0) -- Cor padrão vermelha
-local espRadius = 500
-local showDistance = false
-
+local selectedColor = Color3.new(1, 0, 0) 
+local espRadius = 500 
+local showDistance = false 
 local function createInfoBox(funcName, status)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = funcName,
@@ -21,7 +18,6 @@ local function createInfoBox(funcName, status)
         Duration = 5
     })
 end
-
 local function toggleESP()
     espEnabled = not espEnabled
     if espEnabled then
@@ -33,26 +29,22 @@ local function toggleESP()
                 line.Thickness = 1
                 line.Color = selectedColor
                 line.Visible = true
-
                 local billboard = Instance.new("BillboardGui", player.Character)
                 billboard.Size = UDim2.new(0, 100, 0, 50)
                 billboard.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
                 billboard.StudsOffset = Vector3.new(0, 3, 0)
                 billboard.AlwaysOnTop = true
-
                 local nameLabel = Instance.new("TextLabel", billboard)
                 nameLabel.Size = UDim2.new(1, 0, 1, 0)
                 nameLabel.Text = player.Name
-                nameLabel.TextColor3 = Color3.new(1, 1, 1)
+                nameLabel.TextColor3 = Color3.new(1, 1, 1) 
                 nameLabel.BackgroundTransparency = 1
                 nameLabel.Font = Enum.Font.SourceSansBold
                 nameLabel.TextSize = 14
-
                 espLines[player] = line
                 espBillboards[player] = {billboard = billboard, nameLabel = nameLabel}
             end
         end
-
         game:GetService("RunService").Heartbeat:Connect(function()
             if not espEnabled then return end
             for player, line in pairs(espLines) do
@@ -61,12 +53,10 @@ local function toggleESP()
                     local localPos, onScreen1 = workspace.CurrentCamera:WorldToViewportPoint(localCharacter.HumanoidRootPart.Position)
                     local targetPos, onScreen2 = workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
                     local distance = (localCharacter.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-
                     if onScreen1 and onScreen2 and distance <= espRadius then
                         line.From = Vector2.new(localPos.X, localPos.Y)
                         line.To = Vector2.new(targetPos.X, targetPos.Y)
                         line.Visible = true
-
                         if espBillboards[player] then
                             local nameLabel = espBillboards[player].nameLabel
                             if showDistance then
@@ -102,14 +92,12 @@ local function toggleESP()
     end
     createInfoBox("ESP", "ESP ativado/desativado com sucesso!")
 end
-
 Tab1:AddButton({
     Name = "ESP Lines",
     Callback = function()
         toggleESP()
     end
 })
-
 Tab1:AddToggle({
     Name = "Mostrar Distância",
     Default = false,
@@ -117,16 +105,34 @@ Tab1:AddToggle({
         showDistance = state
     end
 })
-
--- Seletor de Cor "Main Color"
-Tab1:AddColorPicker({
-    Name = "Main Color",
-    Default = selectedColor,
-    Callback = function(color)
-        selectedColor = color
+local colors = {
+    {Name = "Vermelho", Color = Color3.new(1, 0, 0)},
+    {Name = "Verde", Color = Color3.new(0, 1, 0)},
+    {Name = "Azul", Color = Color3.new(0, 0, 1)},
+    {Name = "Amarelo", Color = Color3.new(1, 1, 0)},
+    {Name = "Branco", Color = Color3.new(1, 1, 1)},
+    {Name = "Roxo", Color = Color3.new(0.5, 0, 0.5)},
+    {Name = "Ciano", Color = Color3.new(0, 1, 1)},
+    {Name = "laranja", Color = Color3.new(1, 0.5, 0)}
+}
+local colorOptions = {}
+for _, col in pairs(colors) do
+    table.insert(colorOptions, col.Name)
+end
+Tab1:AddDropdown({
+    Name = "Selecione a Cor da Linha ESP",
+    Options = colorOptions,
+    CurrentOption = "Red",
+    Flag = "ESPLineColor",
+    Callback = function(option)
+        for _, col in pairs(colors) do
+            if col.Name == option then
+                selectedColor = col.Color
+                break
+            end
+        end
     end
 })
-
 Tab1:AddSlider({
     Name = "Raio do ESP",
     Min = 200,
@@ -138,7 +144,6 @@ Tab1:AddSlider({
         espRadius = value
     end
 })
-
 Tab1:AddButton({
     Name = "Ativar Aimbot",
     Callback = function()
@@ -153,80 +158,226 @@ local TabMisc = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Click Teleporte
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local mouse = LocalPlayer:GetMouse()
+
+-- Função de notificação
+local function createInfoBox(funcName, status)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = funcName,
+        Text = status,
+        Duration = 5
+    })
+end
+
+-- Deitar
+local lyingDownEnabled = false
+
+TabMisc:AddToggle({
+    Name = "Deitar",
+    Default = false,
+    Callback = function(state)
+        lyingDownEnabled = state
+        local character = LocalPlayer.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        
+        -- Verifica se o personagem e o humanoide existem
+        if humanoid then
+            if lyingDownEnabled then
+                -- Ativa o estado de "Deitar"
+                humanoid:ChangeState(Enum.HumanoidStateType.Physics)  -- Coloca o personagem no estado de física
+                humanoid.PlatformStand = true -- Impede animações de andar ou pular
+
+                -- Faz o personagem se deitar de frente
+                local rootPart = character:FindFirstChild("HumanoidRootPart")
+                if rootPart then
+                    rootPart.CFrame = rootPart.CFrame * CFrame.Angles(math.rad(-90), 0, 0) -- Deita o personagem de frente
+                end
+                
+                createInfoBox("Deitar", "Ativado!")
+            else
+                -- Desativa o estado de "Deitar"
+                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+                humanoid.PlatformStand = false -- Restaura o controle total do personagem
+                createInfoBox("Deitar", "Desativado!")
+            end
+        end
+    end
+})
+
+-- Garantir que ao morrer, o estado de "Deitar" seja desativado
+LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    humanoid.Died:Connect(function()
+        lyingDownEnabled = false
+        createInfoBox("Deitar", "Desativado!")
+    end)
+end)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local mouse = LocalPlayer:GetMouse()
+
+-- Função de notificação
+local function createInfoBox(funcName, status)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = funcName,
+        Text = status,
+        Duration = 5
+    })
+end
+
+-- Lista de jogadores (para o dropdown)
+local playerList = {}
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        table.insert(playerList, player.Name)
+    end
+end
+
+-- Adicionando a opção de selecionar o jogador para teleportar
+TabMisc:AddDropdown({
+    Name = "Selecione o Jogador",
+    Options = playerList,
+    Default = playerList[1], -- A primeira opção será o jogador padrão
+    Callback = function(selectedPlayer)
+        createInfoBox("Jogador Selecionado", selectedPlayer)
+        -- Salva o jogador selecionado
+        selectedPlayerName = selectedPlayer
+    end
+})
+
+-- Função de Teleporte
+TabMisc:AddButton({
+    Name = "Teleportar para o Jogador",
+    Callback = function()
+        local targetPlayer = Players:FindFirstChild(selectedPlayerName)
+        if targetPlayer and targetPlayer.Character then
+            -- Teleporta para o jogador selecionado
+            local targetHumanoidRootPart = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if targetHumanoidRootPart then
+                LocalPlayer.Character:SetPrimaryPartCFrame(targetHumanoidRootPart.CFrame)
+                createInfoBox("Teleportação", "Teleportado para " .. selectedPlayerName)
+            else
+                createInfoBox("Erro", "Não foi possível encontrar o HumanoidRootPart do jogador.")
+            end
+        else
+            createInfoBox("Erro", "Jogador não encontrado ou personagem inválido.")
+        end
+    end
+})
+
 local clickTeleportEnabled = false
-local mouse = game.Players.LocalPlayer:GetMouse()
+local clickTeleportConnection
 
-local function toggleClickTeleport()
-    clickTeleportEnabled = not clickTeleportEnabled
-    createInfoBox("Click Teleporte", clickTeleportEnabled and "Ativado!" or "Desativado!")
+-- Função de notificação
+local function createInfoBox(funcName, status)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = funcName,
+        Text = status,
+        Duration = 5
+    })
+end
 
-    if clickTeleportEnabled then
-        mouse.Button1Down:Connect(function()
-            if clickTeleportEnabled then
-                local character = game.Players.LocalPlayer.Character
+-- Teleport Click
+TabMisc:AddToggle({
+    Name = "Teleport Click",
+    Default = false,
+    Callback = function(state)
+        clickTeleportEnabled = state
+        createInfoBox("Teleport Click", clickTeleportEnabled and "Ativado!" or "Desativado!")
+
+        if clickTeleportConnection then
+            clickTeleportConnection:Disconnect()
+        end
+
+        if clickTeleportEnabled then
+            clickTeleportConnection = mouse.Button1Down:Connect(function()
+                local character = LocalPlayer.Character
                 if character and character:FindFirstChild("HumanoidRootPart") then
+                    -- Teleporta o personagem para o ponto clicado no mundo
                     character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p)
                 end
-            end
-        end)
+            end)
+        end
     end
-end
-
-TabMisc:AddButton({
-    Name = "Click Teleporte",
-    Callback = toggleClickTeleport
 })
 
--- Noclip
-local noclipEnabled = false
+local trippingEnabled = false
 
-local function toggleNoclip()
-    noclipEnabled = not noclipEnabled
-    createInfoBox("Noclip", noclipEnabled and "Ativado!" or "Desativado!")
-
-    game:GetService("RunService").Stepped:Connect(function()
-        if noclipEnabled then
-            local character = game.Players.LocalPlayer.Character
-            if character then
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
+TabMisc:AddToggle({
+    Name = "ropessar (Shift)",
+    Default = false,
+    Callback = function(state)
+        trippingEnabled = state
+        createInfoBox("Atropessar", trippingEnabled and "Ativado!" or "Desativado!")
+        
+        -- Se desativado, garanta que o personagem possa andar normalmente
+        if not trippingEnabled then
+            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Volta ao estado normal
             end
         end
-    end)
-end
-
-TabMisc:AddButton({
-    Name = "Noclip",
-    Callback = toggleNoclip
-})
-
--- Funções adicionais
-TabMisc:AddButton({
-    Name = "Sentar",
-    Callback = function()
-        game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):Sit()
     end
 })
 
-TabMisc:AddButton({
-    Name = "Deitar",
-    Callback = function()
-        local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+UserInputService.InputBegan:Connect(function(input, isProcessed)
+    if trippingEnabled and input.KeyCode == Enum.KeyCode.LeftShift then
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
         if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+            humanoid:ChangeState(Enum.HumanoidStateType.Physics) -- Ativa o estado de físico para "cair"
         end
     end
-})
+end)
 
-TabMisc:AddButton({
-    Name = "Sem Animação",
-    Callback = function()
-        for _, track in pairs(game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):GetPlayingAnimationTracks()) do
-            track:Stop()
+-- Volta ao estado normal quando o personagem terminar de cair ou de se levantar
+RunService.Heartbeat:Connect(function()
+    if not trippingEnabled then
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid and humanoid:GetState() == Enum.HumanoidStateType.Physics then
+            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Se não estiver atropelando, restaura o estado normal
+        end
+    end
+end)
+
+-- Garantir que a função de "Atropessar" funcione novamente após a morte do personagem
+LocalPlayer.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+
+    -- Se o "Atropessar" estiver ativado, restaura o estado inicial para permitir o uso novamente
+    if trippingEnabled then
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Garante que o personagem possa se levantar, se necessário
+    end
+end)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local sittingEnabled = false
+
+TabMisc:AddToggle({
+    Name = "Sentar",
+    Default = false,
+    Callback = function(state)
+        sittingEnabled = state
+        createInfoBox("Sentar", sittingEnabled and "Ativado!" or "Desativado!")
+
+        local character = LocalPlayer.Character
+        if character then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.Sit = sittingEnabled -- Habilita ou desabilita o estado de sentar
+            end
         end
     end
 })
