@@ -152,6 +152,14 @@
     createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
     end
     })
+    Tab1:AddButton({
+    Name = "Ativar AimbotV2",
+    Callback = function()
+    createInfoBox("AimbotV2", "Carregando AimbotV2...")
+    loadstring(game:HttpGet("https://pastebin.com/raw/NiBBs7Ec"))()
+    createInfoBox("Aimbot", "AimbotV2 ativado com sucesso!")
+    end
+    })
     local TabMisc = Window:MakeTab({
     Name = "Misc",
     Icon = "rbxassetid://4483345998",
@@ -348,7 +356,7 @@
     end
     local function InvisExec()
     createInfoBox("Fe Invisible", "Carregando Fe Invisible...")
-    loadstring(game:HttpGet("https://pastebin.com/raw/c3vgfjhn"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/qHYkurGk"))()
     createInfoBox("Fe Invisible", "Fe Invisible carregado com sucesso!")
     end
     local function F3XLOADER()
