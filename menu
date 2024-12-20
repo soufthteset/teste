@@ -148,16 +148,8 @@
     Name = "Ativar Aimbot",
     Callback = function()
     createInfoBox("Aimbot", "Carregando Aimbot...")
-    loadstring(game:HttpGet("https://pastebin.com/raw/rxkWAcMU"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/8bF91q5Y"))()
     createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
-    end
-    })
-    Tab1:AddButton({
-    Name = "Ativar AimbotV2",
-    Callback = function()
-    createInfoBox("AimbotV2", "Carregando AimbotV2...")
-    loadstring(game:HttpGet("https://pastebin.com/raw/NiBBs7Ec"))()
-    createInfoBox("Aimbot", "AimbotV2 ativado com sucesso!")
     end
     })
     local TabMisc = Window:MakeTab({
