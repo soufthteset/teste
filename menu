@@ -273,50 +273,6 @@
     })
     local trippingEnabled = false
     TabMisc:AddToggle({
-    Name = "ropessar (Shift)",
-    Default = false,
-    Callback = function(state)
-    trippingEnabled = state
-    createInfoBox("Atropessar", trippingEnabled and "Ativado!" or "Desativado!")
-    if not trippingEnabled then
-    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if humanoid then
-    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Volta ao estado normal
-    end
-    end
-    end
-    })
-    UserInputService.InputBegan:Connect(function(input, isProcessed)
-    if trippingEnabled and input.KeyCode == Enum.KeyCode.LeftShift then
-    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if humanoid then
-    humanoid:ChangeState(Enum.HumanoidStateType.Physics) -- Ativa o estado de físico para "cair"
-    end
-    end
-    end)
-    RunService.Heartbeat:Connect(function()
-    if not trippingEnabled then
-    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if humanoid and humanoid:GetState() == Enum.HumanoidStateType.Physics then
-    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Se não estiver atropelando, restaura o estado normal
-    end
-    end
-    end)
-    LocalPlayer.CharacterAdded:Connect(function(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    if trippingEnabled then
-    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Garante que o personagem possa se levantar, se necessário
-    end
-    end)
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local RunService = game:GetService("RunService")
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
-    local sittingEnabled = false
-    TabMisc:AddToggle({
     Name = "Sentar",
     Default = false,
     Callback = function(state)
