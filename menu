@@ -148,7 +148,7 @@
     Name = "Ativar Aimbot",
     Callback = function()
     createInfoBox("Aimbot", "Carregando Aimbot...")
-    loadstring(game:HttpGet("https://pastebin.com/raw/8bF91q5Y"))()
+    loadstring(game:HttpGet("https://pastebin.com/8bF91q5Y"))()
     createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
     end
     })
