@@ -1,65 +1,922 @@
--- Título da caixa
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 20)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Text = "Command Bar"
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 18
-title.Parent = frame
+local isVisible = false  -- Corrigido o nome da variável
+local toggleKey = "end"
 
--- Caixa de texto para digitar os comandos
-local commandBox = Instance.new("TextBox")
-commandBox.Size = UDim2.new(1, -20, 0, 50)
-commandBox.Position = UDim2.new(0, 10, 0, 30)
-commandBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-commandBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-commandBox.PlaceholderText = "Digite um comando..."
-commandBox.Font = Enum.Font.SourceSans
-commandBox.TextSize = 18
-commandBox.ClearTextOnFocus = false
-commandBox.Parent = frame
+local sW, sH = guiGetScreenSize()
+local resW, resH = 1920, 1080
+local x, y = sW / resW, sH / resH  -- Correção no cálculo de posição relativa
 
--- Função para fechar a Command Bar
-local function closeCommandBar()
-    screenGui:Destroy()
+local isMoving = false
+local offsetX, offsetY = 0, 0
+local panelX, panelY = x * 553, y * 271
+local panelWidth, panelHeight = x * 650, y * 460
+
+local aimbotEnabled = false
+local isTargetCheckEnabled = false
+local dx, dy = guiGetScreenSize()
+local defaultAimX, defaultAimY = dx * 0.53, dy * 0.4 -- Posição padrão da mira
+local isFovVisible = false
+local DrawFov = false
+local alpha = DrawFov and 255 or 0 -- Se DrawFov for true, a opacidade será 255 (opaco); se false, será 0 (transparente)
+local fovColor = tocolor(94, 0, 255, 255) -- Cor padrão do FOV
+local radius = 200 -- Raio do círculo (já definido no código)
+local affectPeds = false
+local aimThroughWalls = false
+local isSmoothEnabled = false
+local aimKey = "mouse5"
+local selectingKey = false
+
+function onKeyPress(key)
+    -- Só faz algo se estiver no modo de seleção de tecla
+    if selectingKey then
+        aimKey = key -- Atualiza a tecla pressionada
+        selectingKey = false -- Fecha a seleção de tecla
+    end
 end
 
--- Adiciona funcionalidade ao pressionar Enter
-commandBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local command = commandBox.Text:lower()
-
-        -- Exemplo de comandos
-        if command == "rejoin" then
-            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
-        elseif command == "fly" then
-            loadstring(game:HttpGet("https://pastebin.com/raw/6N4J7yC5"))()
-        elseif command == "noclip" then
-            loadstring(game:HttpGet("https://pastebin.com/raw/7dYZbG8X"))()
-        elseif command == "kill" then
-            local player = game.Players.LocalPlayer
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.Health = 0
-            end
-        elseif command == "clear" then
-            commandBox.Text = ""
-        elseif command == "close" then
-            closeCommandBar()
-        else
-            warn("Comando desconhecido: " .. command)
+addEventHandler("onClientKey", root, 
+    function(button, press)
+        if press then
+            onKeyPress(button) -- Chama a função para atualizar a tecla
         end
+    end
+)
 
-        -- Limpa a caixa após o comando
-        commandBox.Text = ""
+-- Função para alternar a visibilidade do menu
+function toggleMenu()
+    isVisible = not isVisible -- Alternar entre visível e invisível
+
+    if isVisible then
+        showCursor(true) -- Mostrar o cursor quando o menu está visível
+    else
+        showCursor(false) -- Esconder o cursor quando o menu está invisível
+    end
+end
+
+-- Associar a tecla padrão para abrir/fechar o menu e mostrar/ocultar o cursor
+bindKey(toggleKey, "down", toggleMenu)
+
+
+local switches = {
+    { id = 1, name = "Enabled", offsetX = 235, offsetY = 61, width = x * 50, height = y * 20, state = false, textMargin = 133, colorAnim = 0 },
+    { id = 2, name = "Smooth", offsetX = 235, offsetY = 105, width = x * 50, height = y * 20, state = false, textMargin = 133, colorAnim = 0 },
+    { id = 3, name = "Draw Fov", offsetX = 235, offsetY = 150, width = x * 50, height = y * 20, state = false, textMargin = 117, colorAnim = 0 },
+    { id = 4, name = "Check Visible", offsetX = 235, offsetY = 195, width = x * 50, height = y * 20, state = false, textMargin = 83, colorAnim = 0 },
+    { id = 5, name = "Include Peds", offsetX = 235, offsetY = 240, width = x * 50, height = y * 20, state = false, textMargin = 83, colorAnim = 0 },
+    { id = 6, name = "Include Deaths", offsetX = 235, offsetY = 285, width = x * 50, height = y * 20, state = false, textMargin = 63, colorAnim = 0 },
+}
+
+-- Função para desenhar o switch com animação de cor
+function drawSwitch(x, y, width, height, state, colorAnim)
+    -- Cálculo da interpolação de cor com base no tempo e no estado
+    local r1, g1, b1, a1 = 169, 169, 169, 255  -- Cor inicial (cinza)
+    local r2, g2, b2, a2 = 94, 0, 255, 255    -- Cor final (roxo)
+    
+    -- Interpolação suave da cor
+    local r = math.floor(r1 + (r2 - r1) * colorAnim)
+    local g = math.floor(g1 + (g2 - g1) * colorAnim)
+    local b = math.floor(b1 + (b2 - b1) * colorAnim)
+    
+    -- Cor do fundo (cor animada)
+    local bgColor = tocolor(r, g, b, a2)
+
+    -- Cor do handle (quando ativo ou não)
+    local handleColor = state and tocolor(94, 0, 255, 255) or tocolor(169, 169, 169, 255)
+
+    -- Desenha a parte de trás do switch
+    dxDrawRoundedRectangle(x - 1, y - 1, width + 2, height + 2, 9, bgColor, false)
+    dxDrawRoundedRectangle(x, y, width, height, 9, tocolor(16, 16, 16, 255), false)
+
+    -- Desenha o botão (handle) do switch
+    local handleX = state and (x + width - 19) or (x + 4)
+    dxDrawRoundedRectangle(handleX, y + 3, 15, 14, 6, handleColor, false)
+end
+
+-- Função para desenhar o nome ao lado de cada switch com margem personalizada
+function drawSwitchLabel(x, y, name, textMargin)
+    local textWidth = dxGetTextWidth(name, 1.8, "default") -- Obtém a largura do texto
+    local adjustedX = x - textWidth - textMargin -- Calcula a posição ajustada do texto
+
+    dxDrawText(name, adjustedX, y, x, y + 28, tocolor(255, 255, 255), 1.8, "default-bold", "left", "center", false, false, false, false, false)
+end
+
+-- Função para verificar o clique nos switches
+function checkSwitchClick(cursorX, cursorY)
+    for _, switch in ipairs(switches) do
+
+        local switchX, switchY, switchWidth, switchHeight = panelX + switch.offsetX, panelY + switch.offsetY, switch.width, switch.height
+        
+        -- Verifica se o clique ocorreu dentro dos limites da switch
+        if cursorX >= switchX and cursorX <= switchX + switchWidth and cursorY >= switchY and cursorY <= switchY + switchHeight then
+            -- Alterna o estado da switch
+            switch.state = not switch.state
+            switch.colorAnim = 0 -- Reinicia a animação de cor
+            playSoundFrontEnd(37) -- Reproduz o som de clique
+
+            -- Ações específicas para cada switch
+            if switch.id == 1 then
+                aimbotEnabled = switch.state
+            end
+            if switch.id == 2 then
+                isSmoothEnabled = switch.state
+            end
+            if switch.id == 3 then
+                isFovVisible = switch.state
+                DrawFov = switch.state
+            end
+            if switch.id == 4 then
+                aimThroughWalls = switch.state
+            end
+            if switch.id == 5 then
+                affectPeds = switch.state
+            end
+            if switch.id == 6 then
+                isTargetCheckEnabled = switch.state
+            end
+        end
+    end
+end
+
+-- Função para desenhar todos os switches
+function drawAllSwitches(panelX, panelY)
+    if isVisible then
+        for _, switch in ipairs(switches) do
+            if switch.selectedTab == selectedTab then
+                -- Calcula as posições dinamicamente com base no painel
+                local switchX = panelX + switch.offsetX
+                local switchY = panelY + switch.offsetY
+                local switchWidth = switch.width
+                local switchHeight = switch.height
+
+                -- Desenha o nome do switch com margem personalizada
+                drawSwitchLabel(switchX, switchY, switch.name, switch.textMargin)
+
+                -- Atualiza a animação de cor com base no tempo
+                if switch.state then
+                    -- Aumenta a animação de cor até o valor máximo de 1 (máxima interpolação)
+                    switch.colorAnim = math.min(switch.colorAnim + 0.05, 1)
+                else
+                    -- Diminui a animação de cor até o valor mínimo de 0 (sem animação)
+                    switch.colorAnim = math.max(switch.colorAnim - 0.05, 0)
+                end
+
+                -- Depois desenha o switch com a cor animada
+                drawSwitch(switchX, switchY, switchWidth, switchHeight, switch.state, switch.colorAnim)
+            end
+        end
+    end
+end
+
+addEventHandler("onClientClick", root, function(button, state, cursorX, cursorY)
+    if isVisible and button == "left" and state == "down" then
+        -- Chama a função de verificação de clique nas switches
+        checkSwitchClick(cursorX, cursorY)
     end
 end)
 
--- Atalho para fechar a Command Bar (tecla X)
-local userInputService = game:GetService("UserInputService")
-userInputService.InputBegan:Connect(function(input, isProcessed)
-    if not isProcessed and input.KeyCode == Enum.KeyCode.X then
-        closeCommandBar()
+function drawRectangleWithBorder(x, y, width, height, color, borderColor, borderWidth)
+    -- Desenha o retângulo principal
+    dxDrawRectangle(x, y - borderWidth, width, borderWidth, borderColor, false)
+    -- Borda inferior
+    dxDrawRectangle(x, y + height, width, borderWidth, borderColor, false)
+    -- Borda esquerda
+    dxDrawRectangle(x - borderWidth, y, borderWidth, height, borderColor, false)
+    -- Borda direita
+    dxDrawRectangle(x + width, y, borderWidth, height, borderColor, false)
+    dxDrawRectangle(x, y, width, height, color, false)
+end
+
+local buttons = {}
+
+function drawRect(x, y, width, height, radius, colorStroke, sizeStroke, postGUI, text)
+    colorStroke = tostring(colorStroke)
+    sizeStroke = tostring(sizeStroke)
+
+    if (not buttons[radius]) then
+        local raw = string.format([[
+            <svg width='%s' height='%s' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <mask id='path_inside' fill='#FFFFFF' >
+                    <rect width='%s' height='%s' rx='%s' />
+                </mask>
+                <rect opacity='1' width='%s' height='%s' rx='%s' fill='none' stroke='%s' stroke-width='%s' mask='url(#path_inside)'/>
+            </svg>
+        ]], width, height, width, height, radius, width, height, radius, colorStroke, sizeStroke)
+        buttons[radius] = svgCreate(width, height, raw)
     end
+
+    -- Verifica se o cursor está sobre o botão
+    local isHovered = isCursorOver(x, y, width, height)
+    
+    if isHovered then
+        dxDrawImage(x, y, width, height, buttons[radius], 0, 0, 0, tocolor(128, 0, 255, 255), postGUI)
+    else
+        -- Desenha apenas as bordas
+        if buttons[radius] then
+            dxDrawImage(x, y, width, height, buttons[radius], 0, 0, 0, tocolor(94, 0, 255, 180), postGUI)
+        end
+    end
+
+    -- Desenha o texto centralizado
+    if text then
+        local textWidth = dxGetTextWidth(text, 2, "default-bold")  -- Calcula a largura do texto
+        local textHeight = dxGetFontHeight(2, "default-bold")  -- Calcula a altura do texto
+        local textX = x + (width - textWidth) / 2  -- Calcula a posição X para centralizar
+        local textY = y + (height - textHeight) / 2  -- Calcula a posição Y para centralizar
+        dxDrawText(text, textX, textY, textX + textWidth, textY + textHeight, tocolor(255, 255, 255, 255), 2, "default-bold", "center", "center", postGUI)
+    end
+end
+
+    local scrollValue4 = 60
+    local scrollMin4 = 60
+    local scrollMax4 = 300
+    
+    local scrollbarX4, scrollbarY4, scrollbarWidth4, scrollbarHeight4 = panelX + x * 355, panelY + y * 122, x * 260, y * 6 
+    local thumbWidth4 = 7
+    local thumbHeight4 = scrollbarHeight4
+    
+    local isDragging4 = false
+    local dragOffset4 = 0
+    
+    -- Função para desenhar a scrollbar
+    function drawScrollbar4()
+        local scrollbarX4, scrollbarY4, scrollbarWidth4, scrollbarHeight4 = panelX + x * 355, panelY + y * 122, x * 260, y * 6 -- Altura ajustada para 6px
+        local thumbWidth4 = 15 -- Largura do "thumb"
+        local thumbHeight4 = scrollbarHeight4 + y * 8 -- Ajustado para 17px
+    
+        -- Desenhar o fundo da scrollbar
+        dxDrawRoundedRectangle(scrollbarX4, scrollbarY4, scrollbarWidth4, scrollbarHeight4, 3, tocolor(58, 58, 58, 255), false)
+    
+        -- Calcular a largura do preenchimento
+        local fillWidth = ((scrollValue4 - scrollMin4) / (scrollMax4 - scrollMin4)) * scrollbarWidth4
+    
+        -- Desenhar o preenchimento
+        dxDrawRectangle(scrollbarX4, scrollbarY4, fillWidth, scrollbarHeight4, tocolor(94, 0, 255, 255), false)
+    
+        -- Calcular a posição do "thumb"
+        local thumbX4 = scrollbarX4 + ((scrollValue4 - scrollMin4) / (scrollMax4 - scrollMin4)) * (scrollbarWidth4 - thumbWidth4)
+    
+        -- Desenhar o "thumb"
+        dxDrawRoundedRectangle(thumbX4, scrollbarY4 - 5, thumbWidth4, thumbHeight4, 6, tocolor(169, 169, 169, 255), false)
+    
+        -- Desenhar o valor atual
+        dxDrawText(string.format("%.2f", scrollValue4), scrollbarX4 + 210, scrollbarY4 - 25, scrollbarX4 + scrollbarWidth4, scrollbarY4, tocolor(255, 255, 255, 255), 1.3, "default", "center", "top", false, false, false, false, false)
+    end
+
+    -- Função para atualizar o valor da scrollbar
+    function updateScrollbarValue4(absoluteX4)
+        local scrollbarX4, scrollbarY4, scrollbarWidth4, scrollbarHeight4 = panelX + x * 355, panelY + y * 122, x * 260, y * 6 
+        local thumbX4 = absoluteX4 - (thumbWidth4 / 2)
+        thumbX4 = math.max(scrollbarX4, math.min(scrollbarX4 + scrollbarWidth4 - thumbWidth4, thumbX4))
+        return math.floor((thumbX4 - scrollbarX4) / (scrollbarWidth4 - thumbWidth4) * (scrollMax4 - scrollMin4) + scrollMin4)
+    end
+    
+    -- Função para verificar o clique na scrollbar
+    function onClientClick4(button, state, absoluteX4, absoluteY4)
+        if isVisible and button == "left" and state == "down" then
+            local scrollbarX4, scrollbarY4, scrollbarWidth4, scrollbarHeight4 = panelX + x * 355, panelY + y * 122, x * 260, y * 6 
+            -- Verificar se o clique está dentro do thumb
+            local thumbX4 = scrollbarX4 + ((scrollValue4 - scrollMin4) / (scrollMax4 - scrollMin4)) * (scrollbarWidth4 - thumbWidth4)
+            if absoluteX4 >= thumbX4 and absoluteX4 <= thumbX4 + thumbWidth4 and absoluteY4 >= scrollbarY4 and absoluteY4 <= scrollbarY4 + thumbHeight4 then
+                isDragging4 = true
+                dragOffset4 = absoluteX4 - thumbX4
+            -- Verificar se o clique está dentro da scrollbar, mas fora do thumb
+            elseif absoluteX4 >= scrollbarX4 and absoluteX4 <= scrollbarX4 + scrollbarWidth4 and absoluteY4 >= scrollbarY4 and absoluteY4 <= scrollbarY4 + scrollbarHeight4 then
+                scrollValue4 = updateScrollbarValue4(absoluteX4)
+                isDragging4 = true
+            end
+        elseif button == "left" and state == "up" then
+            isDragging4 = false
+        end
+    end
+    
+    -- Função para mover o cursor
+    function onClientCursorMove4(_, _, absoluteX4, absoluteY4)
+        if isDragging4 then
+            scrollValue4 = updateScrollbarValue4(absoluteX4)
+        end
+    end
+    
+    addEventHandler("onClientClick", root, onClientClick4)
+    addEventHandler("onClientCursorMove", root, onClientCursorMove4)
+
+    local scrollValue5 = 0.01
+    local scrollMin5 = 0.01
+    local scrollMax5 = 1.0
+    
+    local scrollbarX5, scrollbarY5, scrollbarWidth5, scrollbarHeight5 = panelX + x * 355, panelY + y * 210, x * 260, y * 39
+    local thumbWidth5 = 7
+    local thumbHeight5 = scrollbarHeight5
+    
+    local isDragging5 = false
+    local dragOffset5 = 0
+    
+    -- Função para desenhar a segunda scrollbar
+    function drawScrollbar5()
+        local scrollbarX5, scrollbarY5, scrollbarWidth5, scrollbarHeight5 = panelX + x * 355, panelY + y * 210, x * 260, y * 6 -- Altura ajustada para 6px
+        local thumbWidth5 = 15 -- Largura do "thumb"
+        local thumbHeight5 = scrollbarHeight5 + y * 8 -- Ajustar para 17px
+    
+        -- Fundo da scrollbar
+        dxDrawRoundedRectangle(scrollbarX5, scrollbarY5, scrollbarWidth5, scrollbarHeight5, 3, tocolor(58, 58, 58, 255), false)
+
+        local fillWidth = ((scrollValue5 - scrollMin5) / (scrollMax5 - scrollMin5)) * scrollbarWidth5
+    
+        -- Desenhar o preenchimento
+        dxDrawRectangle(scrollbarX5, scrollbarY5, fillWidth, scrollbarHeight5, tocolor(94, 0, 255, 255), false)
+        
+        -- Posição do "thumb"
+        local thumbX5 = scrollbarX5 + ((scrollValue5 - scrollMin5) / (scrollMax5 - scrollMin5)) * (scrollbarWidth5 - thumbWidth5)
+    
+        -- Desenho do "thumb"
+        dxDrawRoundedRectangle(thumbX5, scrollbarY5 - 5, thumbWidth5, thumbHeight5, 6, tocolor(169, 169, 169, 255), false)
+        
+        -- Valor atual
+        dxDrawText(string.format("%.2f", scrollValue5), scrollbarX5 + 210, scrollbarY5 - 25, scrollbarX5 + scrollbarWidth5, scrollbarY5, tocolor(255, 255, 255, 255), 1.3, "default", "center", "top", false, false, false, false, false)
+    end
+    
+    -- Função para atualizar o valor da segunda scrollbar
+    function updateScrollbarValue5(absoluteX5)
+        local scrollbarX5, scrollbarY5, scrollbarWidth5, scrollbarHeight5 = panelX + x * 355, panelY + y * 210, x * 260, y * 6
+        -- Limitar a posição do thumb
+        local thumbX5 = absoluteX5 - (thumbWidth5 / 2)
+        thumbX5 = math.max(scrollbarX5, math.min(scrollbarX5 + scrollbarWidth5 - thumbWidth5, thumbX5))
+        
+        -- Calcular o valor baseado na posição do thumb, normalizando e ajustando para o intervalo de 0.01 a 1
+        local normalizedValue = (thumbX5 - scrollbarX5) / (scrollbarWidth5 - thumbWidth5)
+        return math.floor((normalizedValue * (scrollMax5 - scrollMin5) + scrollMin5) * 10000) / 10000
+    end
+    
+    -- Função para verificar o clique na segunda scrollbar
+    function onClientClick5(button, state, absoluteX5, absoluteY5)
+        if isVisible and button == "left" and state == "down" then
+            local scrollbarX5, scrollbarY5, scrollbarWidth5, scrollbarHeight5 = panelX + x * 355, panelY + y * 210, x * 260, y * 6
+            -- Verificar se o clique está dentro do thumb
+            local thumbX5 = scrollbarX5 + ((scrollValue5 - scrollMin5) / (scrollMax5 - scrollMin5)) * (scrollbarWidth5 - thumbWidth5)
+            if absoluteX5 >= thumbX5 and absoluteX5 <= thumbX5 + thumbWidth5 and absoluteY5 >= scrollbarY5 and absoluteY5 <= scrollbarY5 + thumbHeight5 then
+                isDragging5 = true
+                dragOffset5 = absoluteX5 - thumbX5
+            -- Verificar se o clique está dentro da scrollbar, mas fora do thumb
+            elseif absoluteX5 >= scrollbarX5 and absoluteX5 <= scrollbarX5 + scrollbarWidth5 and absoluteY5 >= scrollbarY5 and absoluteY5 <= scrollbarY5 + scrollbarHeight5 then
+                scrollValue5 = updateScrollbarValue5(absoluteX5)
+                isDragging5 = true
+            end
+        elseif button == "left" and state == "up" then
+            isDragging5 = false
+        end
+    end
+    
+    -- Função para mover o cursor na segunda scrollbar
+    function onClientCursorMove5(_, _, absoluteX5, absoluteY5)
+        if isDragging5 then
+            scrollValue5 = updateScrollbarValue5(absoluteX5)
+        end
+    end
+    
+    addEventHandler("onClientClick", root, onClientClick5)
+    addEventHandler("onClientCursorMove", root, onClientCursorMove5)
+    
+
+function isCursorOver(x, y, width, height)
+    local cursorX, cursorY = getCursorPosition()
+    if cursorX and cursorY then
+        local screenX, screenY = guiGetScreenSize()
+        cursorX, cursorY = cursorX * screenX, cursorY * screenY
+        return (cursorX >= x and cursorX <= x + width and cursorY >= y and cursorY <= y + height)
+    end
+    return false
+end
+
+-- Detectar clique para iniciar o movimento
+addEventHandler("onClientClick", root, function(button, state, cursorX, cursorY)
+    if not isVisible then return end
+    
+    if button == "left" then
+        if state == "down" then
+            -- Verificar se o clique está na área superior do painel (onde o título está)
+            local titleBarHeight = y * 34
+            if cursorX >= panelX and cursorX <= panelX + panelWidth and
+               cursorY >= panelY and cursorY <= panelY + titleBarHeight then
+                isMoving = true
+                offsetX, offsetY = cursorX - panelX, cursorY - panelY
+            end
+        elseif state == "up" then
+            isMoving = false
+        end
+    end
+end)
+
+-- Atualizar a posição do painel enquanto estiver sendo arrastado
+addEventHandler("onClientCursorMove", root, function(_, _, cursorX, cursorY)
+    if isMoving then
+        panelX, panelY = cursorX - offsetX, cursorY - offsetY
+    end
+end)
+
+addEventHandler("onClientRender", root, function()
+    if not isVisible then return end  -- Verificar se o menu está visível antes de desenhar
+    local borderColor = tocolor(94, 0, 255, 130) -- Cor da borda
+    local borderWidth = 1 -- Largura da borda
+
+    -- Desenha o retângulo de fundo do menu
+    dxDrawRoundedRectangle(panelX, panelY, panelWidth, panelHeight, 10, tocolor(18, 18, 18, 255), false)
+
+    -- Título "Savage"
+    local titleText = "Savage"
+    local titleWidth = dxGetTextWidth(titleText, 2.00, "default")  -- Calculando a largura do texto
+    local titleX = panelX + (panelWidth - titleWidth) / 2  -- Centralizando o texto
+    dxDrawText(titleText, titleX - x * 45, panelY - y * 275, titleX + titleWidth, panelY + y * 305, tocolor(94, 0, 255, 255), 2.00, "default", "left", "center", false, false, false, false, false)
+
+    -- Título "Menu"
+    local menuText = "Menu"
+    local menuWidth = dxGetTextWidth(menuText, 2.00, "default")  -- Calculando a largura do texto
+    local menuX = panelX + (panelWidth - menuWidth) / 2  -- Centralizando o texto
+    dxDrawText(menuText, menuX + x * 35, panelY - y * 275, menuX + menuWidth, panelY + y * 305, tocolor(255, 255, 255, 255), 2.00, "default", "left", "center", false, false, false, false, false)
+
+
+    -- Linha abaixo dos títulos
+    dxDrawLine(panelX, panelY + y * 34, panelX + panelWidth, panelY + y * 34, tocolor(94, 0, 255, 255), 1, false)
+
+    -- Desenha a área do painel
+    drawRectangleWithBorder(panelX + x * 16, panelY + y * 49, x * 290, y * 300, tocolor(24, 24, 24, 255), borderColor, borderWidth)
+
+    drawRectangleWithBorder(panelX + x * 340, panelY + y * 49, x * 290, y * 390, tocolor(24, 24, 24, 255), borderColor, borderWidth)
+
+    -- Botão "Change fov color"
+    drawRect(panelX + x * 363, panelY + y * 245, x * 244, y * 51, 25, 'white', 3, true, "Change fov color")
+
+    local textButtonKey = selectingKey and "Pressione uma tecla" or aimKey
+
+    drawRect(panelX + x * 363, panelY + y * 365, x * 244, y * 51, 25, 'white', 3, true, textButtonKey)
+
+    local fovTextPosX = panelX + x * 85
+    local fovTextPosY = panelY - y * 70
+    dxDrawText("Fov Size", fovTextPosX, fovTextPosY, fovTextPosX + x * 795, fovTextPosY + y * 303, tocolor(169, 169, 169, 255), x * 2.0, "default-bold", "center", "center", false, false, false, false, false)
+
+    local smoothTextPosX = panelX + x * 85
+    local smoothTextPosY = panelY + y * 15
+    dxDrawText("Smooth", smoothTextPosX, smoothTextPosY, smoothTextPosX + x * 795, smoothTextPosY + y * 303, tocolor(169, 169, 169, 255), x * 2.0, "default-bold", "center", "center", false, false, false, false, false)
+
+    local BindTextPosX = panelX + x * 85
+    local BindTextPosY = panelY + y * 175
+    dxDrawText("Aimbot Keybind", BindTextPosX, BindTextPosY, BindTextPosX + x * 795, BindTextPosY + y * 303, tocolor(169, 169, 169, 255), x * 2.0, "default-bold", "center", "center", false, false, false, false, false)
+    
+    -- Desenha as switches
+    drawAllSwitches(panelX, panelY)
+
+    drawScrollbar4()
+    drawScrollbar5()
+end)
+
+addEventHandler("onClientClick", root,
+    function(button, state, absoluteX, absoluteY)
+        if isVisible and button == "left" and state == "down" then
+            -- Calculando a posição e o tamanho proporcional para o botão
+            local removePlayersFromMemoX, removePlayersFromMemoY, removePlayersFromMemoWidth, removePlayersFromMemoHeight = panelX + x * 363, panelY + y * 245, x * 244, y * 51
+
+            local startButtonPosX, startButtonPosY, startButtonWidth, startButtonHeight = panelX + x * 363, panelY + y * 360, x * 244, y * 51
+
+            -- Verificando se o cursor está sobre a área e executando a ação correspondente
+            if isCursorOver(removePlayersFromMemoX, removePlayersFromMemoY, removePlayersFromMemoWidth, removePlayersFromMemoHeight) then
+                changeFovColor()
+            end
+
+            if isCursorOver(startButtonPosX, startButtonPosY, startButtonWidth, startButtonHeight) then
+                selectingKey = true
+            end
+        end
+    end
+)
+
+local minFov = 60
+local maxFov = 300
+
+-- Função para ajustar o FOV com base no scroll da scrollbar 1
+function updateFovWithScroll1()
+    -- Normaliza o valor do scroll
+    local scrollValue1Normalized = (scrollValue4 - scrollMin4) / (scrollMax4 - scrollMin4)
+    
+    -- Calcula o FOV com base no intervalo desejado
+    radius = minFov + (maxFov - minFov) * scrollValue1Normalized
+    
+    -- Atualiza o tamanho do FOV
+    fovSize = radius
+end
+
+-- Adiciona um evento para atualizar o FOV quando o scroll da scrollbar 1 muda
+addEventHandler("onClientCursorMove", root, updateFovWithScroll1)
+
+function dxDrawRoundedRectangle(x, y, width, height, radius, color, postGUI, subPixelPositioning)
+    local radius2 = radius * 2
+    local x2, y2 = x + width, y + height
+    dxDrawRectangle(x + radius, y, width - radius2, height, color, postGUI, subPixelPositioning) 
+    dxDrawRectangle(x, y + radius, radius, height - radius2, color, postGUI, subPixelPositioning) 
+    dxDrawRectangle(x2 - radius, y + radius, radius, height - radius2, color, postGUI, subPixelPositioning) 
+    dxDrawRectangle(x + radius, y2 - radius, width - radius2, radius, color, postGUI, subPixelPositioning) 
+    dxDrawCircle(x + radius, y + radius, radius, 180, 270, color, color, 16, 1, postGUI) 
+    dxDrawCircle(x2 - radius, y + radius, radius, 270, 360, color, color, 16, 1, postGUI) 
+    dxDrawCircle(x + radius, y2 - radius, radius, 90, 180, color, color, 16, 1, postGUI) 
+    dxDrawCircle(x2 - radius, y2 - radius, radius, 0, 90, color, color, 16, 1, postGUI) 
+end
+
+local currentColorIndex = 4
+
+local predefinedColors = {
+    {255, 255, 255, 255},  -- Branco
+    {255, 0, 0, 255},      -- Vermelho
+    {0, 255, 0, 255},      -- Verde
+    {94, 0, 255, 255},      -- roxo
+    {255, 255, 0, 255},    -- Amarelo
+    {255, 165, 0, 255},    -- Laranja
+    {0, 255, 255, 255},    -- Ciano
+    {0, 0, 0, 255},        -- Preto
+}
+
+function isPedAiming (thePedToCheck)
+    if isElement(thePedToCheck) then
+        if getElementType(thePedToCheck) == "player" or getElementType(thePedToCheck) == "ped" then
+            if getPedTask(thePedToCheck, "secondary", 0) == "TASK_SIMPLE_USE_GUN" or isPedDoingGangDriveby(thePedToCheck) then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local sx, sy = guiGetScreenSize()
+
+local specialWeapons = {22, 23, 24, 25, 26, 27, 28, 29, 32, 38}
+
+local specialWeapons2 = {33}
+
+local specialWeapons3 = {35}
+
+local function isSpecialWeapon(weaponID)
+    for _, id in ipairs(specialWeapons) do
+        if weaponID == id then
+            return true
+        end
+    end
+    return false
+end
+
+local function isSpecialWeapon2(weaponID)
+    for _, id in ipairs(specialWeapons2) do
+        if weaponID == id then
+            return true
+        end
+    end
+    return false
+end
+
+local function isSpecialWeapon3(weaponID)
+    for _, id in ipairs(specialWeapons3) do
+        if weaponID == id then
+            return true
+        end
+    end
+    return false
+end
+
+local bodyParts = {
+    [2] = {
+        {
+            distance = 200,
+            multiple = Vector3(0.03, 0.03, 0.05),
+        },
+        default = Vector3(0.03, 0.03, 0.05),
+    },
+    [8] = {
+        {
+            distance = 50,
+            multiple = Vector3(0.03, 0.03, 0.05)
+        },
+        {
+            distance = 100,
+            multiple = Vector3(0.03, 0.03, 0.05)
+        },
+        {
+            distance = 200,
+            multiple = Vector3(0.03, 0.03, 0.0525)
+        },
+        default = Vector3(0.03, 0.03, 0.05),
+    },
+}
+
+function calculateDepthBuffer(bp, dist)
+    if not bodyParts[bp] then return end
+    local foundIndex = 'default'
+    local najmniejszaRoznica = 9999
+
+    for i, v in pairs(bodyParts[bp]) do
+        if v.distance then
+            local calc = math.abs(v.distance - dist)
+            if calc < najmniejszaRoznica then
+                najmniejszaRoznica = calc
+                foundIndex = i
+            end
+        end
+    end
+
+    -- Obtém o multiplicador padrão
+    local multiple = bodyParts[bp][foundIndex].multiple or bodyParts[bp][foundIndex]
+
+    -- Verifica a arma do jogador
+    local currentWeapon = getPedWeapon(localPlayer) -- Obtém a arma do jogador
+
+    -- Ajustes específicos para o ID 34 com base na distância
+    if currentWeapon == 34 and bp == 8 then
+        if dist > 200 then
+
+        elseif dist > 90 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.25) -- Ajuste para distância maior que 90
+        elseif dist > 80 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.3) -- Ajuste para distância maior que 80
+        elseif dist > 70 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.35) -- Ajuste para distância maior que 70
+        elseif dist > 50 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.4) -- Ajuste para distância maior que 50
+        elseif dist > 40 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.5) -- Ajuste para distância maior que 40
+        elseif dist > 30 then
+            multiple = multiple * Vector3(-0.3, -0.3, 0.5) -- Ajuste para distância maior que 30
+        elseif dist > 20 then
+            multiple = multiple * Vector3(-0.1, -0.1, 0.8) -- Ajuste para distância maior que 20
+        else
+            multiple = multiple * Vector3(0.015, 0.015, 0.6) -- Ajuste para curtas distâncias
+        end
+    end
+
+    -- Ajusta o multiplicador para outras armas especiais
+    if isSpecialWeapon(currentWeapon) and bp == 8 then
+        multiple = multiple + Vector3(0.015, 0.015, 0.02)
+    end
+
+    if isSpecialWeapon2(currentWeapon) and bp == 8 then
+        multiple = multiple + Vector3(-0.01, -0.01, -0.02)
+    end
+
+    if isSpecialWeapon3(currentWeapon) and bp == 8 then
+        multiple = multiple + Vector3(-0.03, -0.03, -0.03)
+    end
+
+    if isPedDucked(localPlayer) then -- Verifica se o jogador está agachado
+        multiple = multiple + Vector3(0, 0, -0.006)
+    end
+
+    return multiple
+end
+
+local selectedBodyPart = 8
+
+-- Função para desenhar o círculo ao redor da mira
+local function drawCircleAroundAim(radius, color)
+    -- Verifica a arma atual do jogador
+    local currentWeapon = getPedWeapon(localPlayer)
+    
+    -- Se a arma for a 34, muda a posição da mira
+    if currentWeapon == 34 then
+        -- Ajustes para a arma 34
+        aimX = dx * 0.5 -- Posição horizontal da mira (ajustada para arma 34)
+        aimY = dy * 0.5 -- Posição vertical da mira (ajustada para arma 34)
+    elseif currentWeapon == 35 then
+        -- Ajustes para a arma 31
+        aimX = dx * 0.5 -- Posição horizontal da mira (ajustada para arma 31)
+        aimY = dy * 0.5 -- Posição vertical da mira (ajustada para arma 31)
+    else
+        -- Caso contrário, retorna à posição padrão
+        aimX, aimY = defaultAimX, defaultAimY
+    end
+
+    local segments = math.max(8, radius / 2)
+    local step = 360 / segments
+    local lastX, lastY
+    for angle = 0, 360, step do
+        local currentX = aimX + math.cos(math.rad(angle)) * radius
+        local currentY = aimY + math.sin(math.rad(angle)) * radius
+        if lastX then
+            dxDrawLine(lastX, lastY, currentX, currentY, color)
+        end
+        lastX, lastY = currentX, currentY
+    end
+end
+
+function findRotation(x1, y1, x2, y2)
+    local t = -math.deg(math.atan2(x2 - x1, y2 - y1))
+    return t < 0 and t + 360 or t
+end
+
+function getPlayersOnScreen()
+    local players = getElementsByType("player", root, true)
+    local t = {}
+
+    -- Adiciona peds se a variável 'includePeds' for verdadeira
+    if affectPeds then
+        local peds = getElementsByType("ped", root, true)
+        for _, ped in ipairs(peds) do
+            local px, py, pz = getElementPosition(ped)
+            local sx, sy = getScreenFromWorldPosition(px, py, pz)
+            
+            if sx and sy then
+                local dist = getDistanceBetweenPoints2D(aimX, aimY, sx, sy)
+                if dist <= radius then
+                    table.insert(t, ped)
+                end
+            end
+        end
+    end
+
+    -- Adiciona jogadores ao filtro
+    for _, player in ipairs(players) do
+        if player ~= localPlayer then
+            local px, py, pz = getElementPosition(player)
+            local sx, sy = getScreenFromWorldPosition(px, py, pz)
+            
+            if sx and sy then
+                local dist = getDistanceBetweenPoints2D(aimX, aimY, sx, sy)
+                if dist <= radius then
+                    table.insert(t, player)
+                end
+            end
+        end
+    end
+
+    return t
+end
+
+function changeFovColor()
+	-- Aumenta o índice da cor predefinida ou volta ao início se atingir o limite
+	currentColorIndex = (currentColorIndex % #predefinedColors) + 1
+	
+	-- Atualiza a cor do FOV
+	fovColor = tocolor(unpack(predefinedColors[currentColorIndex]))
+	
+end
+
+addCommandHandler("fovcolor", changeFovColor)
+
+addEventHandler("onClientRender", root, function()
+    if isFovVisible then
+        drawCircleAroundAim(radius, fovColor)  -- O círculo com a opacidade controlada por DrawFov
+    end
+end)
+
+local function sortbyrot(a, b)
+    local _, _, rz = getElementRotation(localPlayer)
+    local x, y = getElementPosition(localPlayer)
+    local ax, ay = getElementPosition(a)
+    local bx, by = getElementPosition(b)
+    local arz = findRotation(x, y, ax, ay)
+    arz = math.abs(rz - arz)
+    local brz = findRotation(x, y, bx, by)
+    brz = math.abs(rz - brz)
+    return arz < brz
+end
+
+local aspectScaling = 1
+function scaleAspectRatio()
+    local aspect = dxGetStatus()['SettingAspectRatio']
+    if aspect == "4:3" then
+        aspectScaling = 1.4
+    end
+end
+scaleAspectRatio()
+
+-- Lista de IDs de armas proibidas
+local forbiddenWeapons = {
+    [0] = true, [1] = true, [2] = true, [3] = true, [4] = true, [5] = true,
+    [6] = true, [7] = true, [8] = true, [9] = true, [16] = true, [17] = true,
+    [18] = true, [39] = true, [41] = true, [42] = true, [43] = true, [10] = true,
+    [11] = true, [12] = true, [14] = true, [15] = true, [44] = true, [45] = true,
+    [46] = true, [40] = true
+}
+
+-- Variáveis globais
+local smoothSpeed = 0.1  -- A variável de suavidade agora pode aceitar valores muito pequenos
+local minSmooth = 0.1
+local maxSmooth = 1.0
+local lastCameraPos = Vector3(getElementPosition(localPlayer))
+
+local weaponOffsets = {
+    [34] = { x = 0.3, y = -0.06, z = -1.8 }  -- Ajustes para a sniper
+}
+
+-- Função para ajustar o FOV com base no scroll da scrollbar 1
+function updateSmoothSpeedWithScroll()
+    -- Normaliza o valor do scroll para o intervalo de 0.01 a 1
+    local scrollValueNormalized = (scrollValue5 - scrollMin5) / (scrollMax5 - scrollMin5)
+    
+    -- Calcula o novo valor de smoothSpeed com base no intervalo desejado
+    smoothSpeed = minSmooth + (maxSmooth - minSmooth) * scrollValueNormalized
+end
+
+-- Função que será chamada a cada movimento do cursor
+function onClientCursorMoveWithSmoothSpeed(_, _, absoluteX5, absoluteY5)
+    if isDragging5 then
+        -- Atualiza o valor de smoothSpeed quando o cursor se mover
+        scrollValue5 = updateScrollbarValue5(absoluteX5)
+        updateSmoothSpeedWithScroll()
+    end
+end
+
+-- Adicionando os eventos para atualizar o smoothSpeed
+addEventHandler("onClientCursorMove", root, onClientCursorMoveWithSmoothSpeed)
+
+-- Função para interpolação linear (lerp)
+local function lerp(startPos, endPos, alpha)
+    if not isSmoothEnabled then
+        return endPos -- Se smooth estiver desativado, retorna diretamente a posição final
+    end
+    return startPos + (endPos - startPos) * alpha
+end
+
+addEventHandler("onClientPreRender", root, function()
+    -- Verifica se o jogador está mirando e se o aimbot está ativado
+    if not getKeyState(aimKey) or not aimbotEnabled then return end
+
+    -- Verifica se a arma atual do jogador está na lista de armas proibidas
+    local currentWeapon = getPedWeapon(localPlayer)
+    if forbiddenWeapons[currentWeapon] then
+        return -- Se a arma for proibida, não ativa a mira
+    end
+
+    -- Obtém a lista de jogadores visíveis na tela
+    local players = getPlayersOnScreen()
+    if not players[1] then return end
+    table.sort(players, sortbyrot)
+
+    -- Seleciona o primeiro jogador na lista de jogadores visíveis
+    local ped = players[1]
+
+    -- Se a verificação de morte estiver ativada e o alvo estiver morto, puxa a mira
+    if isTargetCheckEnabled and isPedDead(ped) then
+        -- Se o alvo estiver morto, não puxa a mira
+    elseif not isTargetCheckEnabled and isPedDead(ped) then
+        return -- Se a verificação estiver desativada, não puxa a mira no alvo morto
+    end
+
+    -- Obtém as posições de mira e do alvo
+    local target = Vector3(getPedTargetEnd(localPlayer))
+    local startTarget = Vector3(getPedTargetStart(localPlayer))
+    local pedPos = Vector3(getElementPosition(ped))
+
+    -- Calcula a distância entre o jogador e o ped
+    local distance = getDistanceBetweenPoints3D(startTarget.x, startTarget.y, startTarget.z, pedPos.x, pedPos.y, pedPos.z)
+    
+    -- Verifica se a distância é maior que 200
+    if distance > 100 then
+        return -- Se a distância for maior que 200, não ativa a mira
+    end
+
+    -- Se o 'aimThroughWallsEnabled' estiver desativado, permite puxar a mira para trás da parede
+    if not aimThroughWalls then
+        -- Aqui você pode usar uma função personalizada para calcular a linha de visão atravessando obstáculos
+        -- ou forçar a mira a ir para o alvo, mesmo atrás de uma parede.
+        -- Exemplo: Não verifica se a linha de visão está limpa
+    else
+        -- Quando o 'aimThroughWallsEnabled' estiver ativado, verifica a linha de visão
+        if not isLineOfSightClear(startTarget.x, startTarget.y, startTarget.z, pedPos.x, pedPos.y, pedPos.z, true, false, false, true, false, true, true, localPlayer) then
+            return -- Se a linha de visão não estiver limpa e o 'aimThroughWallsEnabled' estiver ativado, não ativa a mira
+        end
+    end
+
+    local screenPos = Vector2(getScreenFromWorldPosition(getPedBonePosition(ped, selectedBodyPart)))
+
+    -- Obtém a rotação do jogador
+    local _, _, rzL = getElementRotation(localPlayer)
+    local px, py = getElementPosition(localPlayer)
+    local rot = math.rad(rzL)
+
+    -- Calcula a profundidade da mira
+    local depthBuffer = getDistanceBetweenPoints3D(target.x, target.y, target.z, startTarget)
+
+    -- Cálculos de movimentação e posição
+    local newPos = screenPos
+    local calc = depthBuffer
+    local multipler = calculateDepthBuffer(selectedBodyPart, distance)
+
+    -- Obtém os offsets da arma ou usa valores padrão
+    local offsets = weaponOffsets[currentWeapon] or { x = 0, y = 0, z = 0 }
+
+    -- Cálculo de posição da mira (diferente para armas e outras situações)
+    local calcX, calcY, calcZ
+    if weaponOffsets[currentWeapon] then
+        calcX = (math.cos(rot) * multipler.x * distance) + offsets.x
+        calcY = (math.sin(rot) * multipler.y * distance) + offsets.y
+        calcZ = (multipler.z * aspectScaling * distance) + offsets.z
+    else
+        calcX = math.cos(rot) * (depthBuffer * multipler.x) + offsets.x
+        calcY = math.sin(rot) * (depthBuffer * multipler.y) + offsets.y
+        calcZ = calc * (multipler.z * aspectScaling) + offsets.z
+    end
+
+    -- Define a posição do mundo ajustada para a mira
+    local worldPos = Vector3(getWorldFromScreenPosition(newPos.x, newPos.y, depthBuffer)) - Vector3(calcX, calcY, calcZ)
+
+    -- Adiciona o efeito suave (smooth) ao movimento da câmera
+    local smoothedPos = lerp(lastCameraPos, worldPos, smoothSpeed)
+
+    -- Ajusta a câmera suavemente para a nova posição
+    setCameraTarget(smoothedPos)
+
+    -- Atualiza a posição da câmera para a próxima iteração
+    lastCameraPos = smoothedPos
 end)
