@@ -280,52 +280,6 @@
     end
     })
     local trippingEnabled = false
-   TabMisc:AddToggle({
-    Name = "Tropeçar (Shift)",
-    Default = false,
-    Callback = function(state)
-        trippingEnabled = state
-        createInfoBox("Tropeçar", trippingEnabled and "Ativado!" or "Desativado!")
-        if not trippingEnabled then
-            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Volta ao estado normal
-            end
-        end
-    end
-})
-
--- Detecta entrada do jogador
-UserInputService.InputBegan:Connect(function(input, isProcessed)
-    if not isProcessed and trippingEnabled then
-        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if humanoid then
-            if input.KeyCode == Enum.KeyCode.LeftShift then
-                humanoid:ChangeState(Enum.HumanoidStateType.Physics) -- Ativa o estado de tropeço
-            elseif input.KeyCode == Enum.KeyCode.Space then
-                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) -- Se pressionar espaço, levanta
-            end
-        end
-    end
-end)
-
--- Verificação contínua para garantir que o jogador levante se não estiver tropeçando
-RunService.Heartbeat:Connect(function()
-    if not trippingEnabled then
-        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if humanoid and humanoid:GetState() == Enum.HumanoidStateType.Physics then
-            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-        end
-    end
-end)
-
--- Garante que o personagem seja configurado corretamente ao reaparecer
-LocalPlayer.CharacterAdded:Connect(function(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    if trippingEnabled then
-        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-    end
-end)
     TabMisc:AddToggle({
     Name = "Sentar",
     Default = false,
