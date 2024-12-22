@@ -1,4 +1,4 @@
-    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/sourcee')))()
+    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-ness')))()
     local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🕋", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
     local Tab1 = Window:MakeTab({
     Name = "ESP/Aim",
@@ -148,8 +148,16 @@
     Name = "Ativar Aimbot",
     Callback = function()
     createInfoBox("Aimbot", "Carregando Aimbot...")
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/ttwizz/Open-Aimbot/master/source.lua"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/rxkWAcMU"))()
     createInfoBox("Aimbot", "Aimbot ativado com sucesso!")
+    end
+    })
+    Tab1:AddButton({
+    Name = "Ativar AimbotV2",
+    Callback = function()
+    createInfoBox("AimbotV2", "Carregando AimbotV2...")
+    loadstring(game:HttpGet("https://pastebin.com/raw/NiBBs7Ec"))()
+    createInfoBox("Aimbot", "AimbotV2 ativado com sucesso!")
     end
     })
     local TabMisc = Window:MakeTab({
@@ -317,6 +325,11 @@
     loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
     createInfoBox('Dex', 'Dex carregado com sucesso!')
     end
+    local function onReverseButtonClick()
+    createInfoBox("Reverse", "Carregando Reverse...")
+    loadstring(game:HttpGet("https://pastebin.com/raw/xcUkvFJj"))()
+    createInfoBox("Reverse", "Reverse carregado com sucesso!")
+    end
     Tab2:AddButton({
     Name = "InfiniteYield",
     Callback = onInfiniteYieldButtonClick
@@ -336,6 +349,10 @@
     Tab2:AddButton({
     Name = "Dex",
     Callback = DEXLOAD
+    })
+    Tab2:AddButton({
+    Name = "Reverse",
+    Callback = onReverseButtonClick
     })
     local Tab3 = Window:MakeTab({
     Name = "Brookhaven",
