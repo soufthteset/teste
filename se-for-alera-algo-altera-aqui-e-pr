@@ -325,6 +325,11 @@
     loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
     createInfoBox('Dex', 'Dex carregado com sucesso!')
     end
+    local function onReverseButtonClick()
+    createInfoBox("Reverse", "Carregando Reverse...")
+    loadstring(game:HttpGet("https://pastebin.com/raw/xcUkvFJj"))()
+    createInfoBox("Reverse", "Reverse carregado com sucesso!")
+    end
     Tab2:AddButton({
     Name = "InfiniteYield",
     Callback = onInfiniteYieldButtonClick
@@ -344,6 +349,10 @@
     Tab2:AddButton({
     Name = "Dex",
     Callback = DEXLOAD
+    })
+    Tab2:AddButton({
+    Name = "Reverse",
+    Callback = onReverseButtonClick
     })
     local Tab3 = Window:MakeTab({
     Name = "Brookhaven",
