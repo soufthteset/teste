@@ -375,7 +375,7 @@
     })
     local function loadSystemBroken()
     createInfoBox("STILL WORKING", "Carregando Real Hub...")
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Denverrz/scripts/master/PRISONWARE_v1.3.txt"))()
+   loadstring(game:HttpGet('https://raw.githubusercontent.com/elliexmln/PrizzLife/main/pladmin.lua'))()
     createInfoBox("STILL WORKING", "System Broken carregado com sucesso!")
     end
     Tab3:AddButton({
