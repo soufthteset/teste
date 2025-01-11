@@ -1,5 +1,12 @@
-    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/soufthteset/teste/refs/heads/main/se-for-meche-ness')))()
-    local Window = OrionLib:MakeWindow({Name = "SOUFTH MENU 🕋", HidePremium = false, SaveConfig = true, ConfigFolder = "TestConfig"})
+UserInputService = game:GetService("UserInputService")
+local IsOnMobile = table.find({
+	Enum.Platform.IOS,
+	Enum.Platform.Android
+}, UserInputService:GetPlatform())
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
     local Tab1 = Window:MakeTab({
     Name = "ESP/Aim",
     Icon = "rbxassetid://4483345998",
